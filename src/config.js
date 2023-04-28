@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 
 const getConfig = () => {
   dotenv.config();
+
   return {
     logger: {
       level: process.env.LOG_LEVEL || "error",
@@ -21,13 +22,15 @@ const getConfig = () => {
     },
     mailer: {
       enabled:
-        process.env.MAIL_ENABLED === true || process.env.MAIL_ENABLED === "true"
+        process.env.MAIL_ENABLED === true ||
+        String(process.env.MAIL_ENABLED).toLowerCase() === "true"
           ? true
           : false,
       host: process.env.SMTP_HOST || null,
       port: process.env.SMTP_PORT || null,
       secure:
-        process.env.SMTP_SECURE === true || process.env.SMTP_SECURE === "true"
+        process.env.SMTP_SECURE === true ||
+        String(process.env.SMTP_SECURE).toLowerCase() === "true"
           ? true
           : false,
       ciphers: process.env.SMTP_CIPHERS || null,
@@ -38,24 +41,24 @@ const getConfig = () => {
       subject: process.env.MAIL_SUBJECT || "SmartMeter Vienna",
       onRestart:
         process.env.MAIL_ON_RESTART === true ||
-        process.env.MAIL_ON_RESTART === "false"
+        String(process.env.MAIL_ON_RESTART).toLowerCase() === "false"
           ? false
           : true,
       onSuccess:
         process.env.MAIL_ON_SUCCESS === true ||
-        process.env.MAIL_ON_SUCCESS === "false"
+        String(process.env.MAIL_ON_SUCCESS).toLowerCase() === "false"
           ? false
           : true,
       onError:
         process.env.MAIL_ON_FAILURE === true ||
-        process.env.MAIL_ON_FAILURE === "false"
+        String(process.env.MAIL_ON_FAILURE).toLowerCase() === "false"
           ? false
           : true,
     },
     webhook: {
       enabled:
         process.env.WEBHOOK_ENABLED === true ||
-        process.env.WEBHOOK_ENABLED === "true"
+        String(process.env.WEBHOOK_ENABLED).toLowerCase() === "true"
           ? true
           : false,
       method: process.env.WEBHOOK_METHOD || "POST",
@@ -65,7 +68,7 @@ const getConfig = () => {
         failure: process.env.WEBHOOK_URL_FAILURE || null,
       },
     },
-    web: { port: process.env.PORT || 1978 },
+    web: { port: Number.parseInt(process.env.PORT) || 1978 },
     cron: {
       schedule: process.env.CRON_SCHEDULE || null,
     },
