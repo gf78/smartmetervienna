@@ -109,6 +109,12 @@ Use the following environment variables to configure the service
 | WEBHOOK_URL_SUCCESS  | Webhook URL on success                              | no        |
 | WEBHOOK_URL_FAILURE  | Webhook URL on failure                              | no        |
 
+## Cron Job
+
+Set `CRON_SCHEDULE` ENV variable for example to `0 0 10 * * *` to request daily at 10am the measurements of the last day and store them into the database. If enabled you will receive email and/or webhook notifications on success/failure.
+
+Schedule format: https://crontab.guru/
+
 ## APIs
 
 ### Wattage
