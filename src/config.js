@@ -20,22 +20,44 @@ const getConfig = () => {
       measurement: process.env.INLUXDB_MEASUREMENT || "Wattage_15min_Wh",
     },
     mailer: {
-      enabled: process.env.MAIL_ENABLED === "true" ? true : false,
+      enabled:
+        process.env.MAIL_ENABLED === true || process.env.MAIL_ENABLED === "true"
+          ? true
+          : false,
       host: process.env.SMTP_HOST || null,
       port: process.env.SMTP_PORT || null,
-      secure: process.env.SMTP_SECURE === "true" ? true : false,
+      secure:
+        process.env.SMTP_SECURE === true || process.env.SMTP_SECURE === "true"
+          ? true
+          : false,
       ciphers: process.env.SMTP_CIPHERS || null,
       username: process.env.SMTP_USERNAME || null,
       password: process.env.SMTP_PASSWORD || null,
       from: process.env.SMTP_FROM || "SmartMeter Vienna",
       to: process.env.MAIL_TO || null,
       subject: process.env.MAIL_SUBJECT || "SmartMeter Vienna",
-      onRestart: process.env.MAIL_ON_RESTART === "false" ? false : true,
-      onSuccess: process.env.MAIL_ON_SUCCESS === "false" ? false : true,
-      onError: process.env.MAIL_ON_FAILURE === "false" ? false : true,
+      onRestart:
+        process.env.MAIL_ON_RESTART === true ||
+        process.env.MAIL_ON_RESTART === "false"
+          ? false
+          : true,
+      onSuccess:
+        process.env.MAIL_ON_SUCCESS === true ||
+        process.env.MAIL_ON_SUCCESS === "false"
+          ? false
+          : true,
+      onError:
+        process.env.MAIL_ON_FAILURE === true ||
+        process.env.MAIL_ON_FAILURE === "false"
+          ? false
+          : true,
     },
     webhook: {
-      enabled: process.env.WEBHOOK_ENABLED === "true" ? true : false,
+      enabled:
+        process.env.WEBHOOK_ENABLED === true ||
+        process.env.WEBHOOK_ENABLED === "true"
+          ? true
+          : false,
       method: process.env.WEBHOOK_METHOD || "POST",
       urls: {
         restart: process.env.WEBHOOK_URL_RESTART || null,
