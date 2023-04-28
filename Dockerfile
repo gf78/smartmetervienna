@@ -1,6 +1,8 @@
 FROM node:20.0.0-alpine3.16
 
 WORKDIR /usr/src/app
+RUN mkdir -p /usr/src/app/logs
+RUN ln -s /usr/src/app/logs /logs
 
 COPY package*.json ./
 

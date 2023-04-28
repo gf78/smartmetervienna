@@ -1,9 +1,10 @@
 # smartmetervienna
 /node_modules
 /logs
+/private
+run.bat
 .env
 smartmetervienna.code-workspace
-
 
 # Logs
 logs

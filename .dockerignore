@@ -1,5 +1,8 @@
+private
 node_modules
 npm-debug.log
 logs
 .env
 smartmetervienna.code-workspace
+.git
+run.bat

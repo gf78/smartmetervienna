@@ -4,7 +4,7 @@
 
 - Support **smart meters** used in **Vienna** by Wiener Netze
 - Retrieve **power consumption** for a specific day (15 minutes interval)
-- Store values to **influx database**(V2)
+- Store values to **influx database** (V2)
 - Run daily **cron job** to store data
 - Retrieve data via **REST API** without authorization
 - Check service status on **Web UI**
@@ -74,37 +74,37 @@ volumes:
 
 Use the following environment variables to configure the service
 
-| Variable             | Description                                        | Mandatory |
-| -------------------- | -------------------------------------------------- | --------- |
-| LOGWIEN_USERNAME     | Username for smart meter portal of Wiener Netze    | yes       |
-| LOGWIEN_PASSWORD     | Password for smart meter portal of Wiener Netze    | yes       |
-| METER_ID             | Meter id (Zählerpunkt) of Wiener Netze             | no        |
-| INLUXDB_URL          | URL of influx db `http://xxx:8086`                 | no        |
-| INLUXDB_TOKEN        | Token of influx db                                 | no        |
-| INLUXDB_ORGANISATION | Organisation of influx db                          | no        |
-| INLUXDB_BUCKET       | Bucket of influx db                                | no        |
-| INLUXDB_MEASUREMENT  | Measurement name for influx db                     | no        |
-| PORT                 | Web service port `1978`                            | no        |
-| LOG_LEVEL            | Level of logging service `error`, `info`, `verbose | no        |
-| CRON_SCHEDULE        | Schedule for cron job `0 0 10 * * *`               | no        |
-| SMTP_HOST            | SMTP server host                                   | no        |
-| SMTP_PORT            | SMTP server port `587`                             | no        |
-| SMTP_SECURE          | SMTP server sercurity `true`, `false`              | no        |
-| SMTP_CIPHERS         | SMTP server ciphers `SSLv3`                        | no        |
-| SMTP_USERNAME        | SMTP server username                               | no        |
-| SMTP_PASSWORD        | SMTP server password                               | no        |
-| SMTP_FROM            | Sender email address                               | no        |
-| MAIL_ENABLED         | Email notifications enabled: `true`, `false`       | no        |
-| MAIL_TO              | Receipients email address                          | no        |
-| MAIL_SUBJECT         | Email subject                                      | no        |
-| MAIL_ON_SUCCESS      | Send otifications on success: `true`, `false`      | no        |
-| MAIL_ON_FAILURE      | Send otifications on failure: `true`, `false`      | no        |
-| MAIL_ON_RESTART      | Send otifications on restart: `true`, `false`      | no        |
-| WEBHOOK_ENABLED      | Webhook notifications enabled: `true`, `false`     | no        |
-| WEBHOOK_METHOD       | Webhook protocol: `POST`, `GET`                    | no        |
-| WEBHOOK_URL_RESTART  | Webhook URL on restart                             | no        |
-| WEBHOOK_URL_SUCCESS  | Webhook URL on success                             | no        |
-| WEBHOOK_URL_FAILURE  | Webhook URL on failure                             | no        |
+| Variable             | Description                                         | Mandatory |
+| -------------------- | --------------------------------------------------- | --------- |
+| LOGWIEN_USERNAME     | Username for smart meter portal of Wiener Netze     | yes       |
+| LOGWIEN_PASSWORD     | Password for smart meter portal of Wiener Netze     | yes       |
+| METER_ID             | Meter id (Zählerpunkt) of Wiener Netze              | no        |
+| INLUXDB_URL          | URL of influx db `http://xxx:8086`                  | no        |
+| INLUXDB_TOKEN        | Token of influx db                                  | no        |
+| INLUXDB_ORGANISATION | Organisation of influx db                           | no        |
+| INLUXDB_BUCKET       | Bucket of influx db                                 | no        |
+| INLUXDB_MEASUREMENT  | Measurement name for influx db                      | no        |
+| PORT                 | Web service port `1978`                             | no        |
+| LOG_LEVEL            | Level of logging service `error`, `info`, `verbose` | no        |
+| CRON_SCHEDULE        | Schedule for cron job `0 0 10 * * *`                | no        |
+| SMTP_HOST            | SMTP server host                                    | no        |
+| SMTP_PORT            | SMTP server port `587`                              | no        |
+| SMTP_SECURE          | SMTP server sercurity `true`, `false`               | no        |
+| SMTP_CIPHERS         | SMTP server ciphers `SSLv3`                         | no        |
+| SMTP_USERNAME        | SMTP server username                                | no        |
+| SMTP_PASSWORD        | SMTP server password                                | no        |
+| SMTP_FROM            | Sender email address                                | no        |
+| MAIL_ENABLED         | Email notifications enabled: `true`, `false`        | no        |
+| MAIL_TO              | Receipients email address                           | no        |
+| MAIL_SUBJECT         | Email subject                                       | no        |
+| MAIL_ON_SUCCESS      | Send otifications on success: `true`, `false`       | no        |
+| MAIL_ON_FAILURE      | Send otifications on failure: `true`, `false`       | no        |
+| MAIL_ON_RESTART      | Send otifications on restart: `true`, `false`       | no        |
+| WEBHOOK_ENABLED      | Webhook notifications enabled: `true`, `false`      | no        |
+| WEBHOOK_METHOD       | Webhook protocol: `POST`, `GET`                     | no        |
+| WEBHOOK_URL_RESTART  | Webhook URL on restart                              | no        |
+| WEBHOOK_URL_SUCCESS  | Webhook URL on success                              | no        |
+| WEBHOOK_URL_FAILURE  | Webhook URL on failure                              | no        |
 
 ## APIs
 

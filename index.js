@@ -116,7 +116,7 @@ try {
 
     // Notify about restart
     webhook.send({ cmd: "restart" });
-    if (config.mailer.onRestart === "true") {
+    if (config.mailer.onRestart) {
       mailer.send({
         text: "[INFO] Service wurde gestartet.",
       });
