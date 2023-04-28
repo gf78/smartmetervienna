@@ -1,0 +1,43 @@
+version: "3.3"
+services:
+  smartmetervienna:
+    container_name: smartmetervienna
+    image: "gf78/smartmetervienna:latest"
+    restart: unless-stopped
+    ports:
+      - "80:1978"
+    environment:
+      PORT: 1978
+      LOG_LEVEL: "error"
+      CRON_SCHEDULE: "0 0 10 * * *"
+      LOGWIEN_USERNAME: "xxx"
+      LOGWIEN_PASSWORD: "xxx"
+      INLUXDB_URL: "http://xxx:8086"
+      INLUXDB_ORGANISATION: "xxx"
+      INLUXDB_BUCKET: "smartmetervienna"
+      INLUXDB_MEASUREMENT: "Wattage_15min_Wh"
+      INLUXDB_TOKEN: "xxx"
+      SMTP_HOST: "xxx"
+      SMTP_PORT: 587
+      SMTP_SECURE: false
+      SMTP_CIPHERS: "SSLv3"
+      SMTP_USERNAME: "xxx"
+      SMTP_PASSWORD: "xxx"
+      SMTP_FROM: "xxx"
+      SMTP_TO: "xxx"
+      MAIL_ENABLED: false
+      MAIL_SUBJECT: "SmartMeter Vienna"
+      MAIL_ON_SUCCESS: true
+      MAIL_ON_FAILURE: true
+      MAIL_ON_RESTART: true
+      WEBHOOK_ENABLED: false
+      WEBHOOK_METHOD: POST
+      WEBHOOK_URL_RESTART: "http(s)://xxx"
+      WEBHOOK_URL_SUCCESS: "http(s)://xxx"
+      WEBHOOK_URL_FAILURE: "http(s)://xxx"
+    volumes:
+      - "smartmetervienna-logs:/logs"
+volumes:
+  smartmetervienna-logs:
+    external: true
+    name: smartmetervienna-logs

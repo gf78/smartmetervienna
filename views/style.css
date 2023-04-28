@@ -1,0 +1,61 @@
+body {
+  font-family: Arial;
+  padding: 1em;
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+body,
+p,
+li {
+  font-size: 1em;
+  line-height: 1.25em;
+}
+
+h1 {
+  margin-bottom: 1.5em;
+}
+
+h2 {
+  font-size: 1.15em;
+  margin-top: 3.5em;
+  margin-bottom: 0.5em;
+}
+
+h3 {
+  font-size: 1em;
+  margin-top: 0.75em;
+  margin-bottom: 0.25em;
+}
+
+table {
+  width: 100%;
+}
+
+th,
+td {
+  padding: 0.25em 0.5em 0.25em 0.5em;
+  text-align: left;
+}
+
+tr {
+  background-color: #f2f2f278;
+}
+
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+pre {
+  text-align: left;
+}
+
+textarea.json {
+  width: 100%;
+  height: 50vh;
+}
+
+.pre {
+  white-space: pre-line;
+}

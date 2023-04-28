@@ -1,3 +1,10 @@
+# smartmetervienna
+/node_modules
+/logs
+.env
+smartmetervienna.code-workspace
+
+
 # Logs
 logs
 *.log
