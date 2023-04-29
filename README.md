@@ -89,7 +89,7 @@ Use the following environment variables to configure the service
 | INLUXDB_MEASUREMENT  | Measurement name for influx db                      | no        |
 | PORT                 | Web service port `1978`                             | no        |
 | LOG_LEVEL            | Level of logging service `error`, `info`, `verbose` | no        |
-| CRON_SCHEDULE        | Schedule for cron job `0 0 10 * * *`                | no        |
+| CRON_SCHEDULE        | Schedule for cron job `"0 10,16 * * *`              | no        |
 | SMTP_HOST            | SMTP server host                                    | no        |
 | SMTP_PORT            | SMTP server port `587`                              | no        |
 | SMTP_SECURE          | SMTP server sercurity `true`, `false`               | no        |
@@ -111,7 +111,7 @@ Use the following environment variables to configure the service
 
 ## Cron Job
 
-Set `CRON_SCHEDULE` ENV variable for example to `0 0 10 * * *` to request daily at 10am the measurements of the last day and store them into the database. If enabled you will receive email and/or webhook notifications on success/failure.
+Set `CRON_SCHEDULE` ENV variable for example to `"0 10,16 * * *` to request daily at 10am and 4pm the measurements of the last day and store them into the database. If enabled you will receive email and/or webhook notifications on success/failure.
 
 Schedule format: https://crontab.guru/
 

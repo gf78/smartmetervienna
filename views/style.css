@@ -6,6 +6,11 @@ body {
   margin: 0 auto;
 }
 
+a {
+  text-decoration: none;
+  color: blue;
+}
+
 body,
 p,
 li {
@@ -27,6 +32,7 @@ h3 {
   font-size: 1em;
   margin-top: 0.75em;
   margin-bottom: 0.25em;
+  font-weight: 300;
 }
 
 table {

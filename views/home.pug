@@ -4,9 +4,48 @@ html
   body
 
         h1 SmartMeter Vienna
+        p 
+            = config.service.version
+
+        h2 Rest API
+        table(class='rest-api')
+            tr 
+                th Service
+                th Description               
+                th Link
+            tr 
+                td Swagger UI
+                td Endpoint and model definition. Sample data and live excution.
+                td 
+                    a(href="/api-docs#") [OPEN]
+
+            tr 
+                td Swagger File
+                td  api-docs json-File
+                td 
+                    a(href="/api-docs.json") [OPEN]
 
 
-        h2 Last Errors    
+        h2 Web API
+        table(class='web-api')
+            tr 
+                th Service
+                th Description               
+                th Link
+            tr 
+                td Measurements
+                td Smartmeter measurements of yesterday
+                td 
+                    a(href='/api/v1/meter?format=html') [OPEN]
+
+            tr 
+                td Log
+                td Logfile entries
+                td 
+                    a(href='/api/v1/log?format=html') [OPEN]
+
+
+        h2 Log: Last Errors    
         table(class='log')
             tr 
                 th Level
@@ -18,7 +57,26 @@ html
                     td= val.level
                     td= val.timestamp               
                     td= val.message
-                    td= val.details
+                    td= JSON.stringify(val.details===undefind || val.details===null ? "" : val.details, null, 4)
+
+//- 
+        h2 Configuration
+        each val, key in config
+            h3= key
+            table(class='config')
+                each val2, key2 in val
+                    tr
+                        td= key2
+                        td(class='pre')= JSON.stringify(val2===undefind || val2===null ? "" : val2, null, 4).replace(/(^"|"$)/g, '')
+
+
+-//
+
+
+
+
+
+
 
         h2 Configuration
         table(class='config')
@@ -32,60 +90,39 @@ html
                                 td(class='pre')= JSON.stringify(val2===undefind || val2===null ? "" : val2, null, 4).replace(/(^"|"$)/g, '')
 
 
-        h2 API: Wattage
-        table(class='days')
-            tr 
-                th Date
-                th Path
-                th JSON
-                th HTML
-            each val, key in days
-                tr
-                    td= val
-                    td= '/api/v1/wattage/'+val
-                    td 
-                        a(href='/api/v1/wattage/'+val) JSON
-                    td 
-                        a(href='/api/v1/wattage/'+val+'?format=html') HTML
 
-        h2 API: Log
-        table(class='days')
-            tr 
-                th Date
-                th Path
-                th JSON
-                th HTML
-            tr 
-                td Last 7 days
-                td /api/v1/wattage/
-                td  
-                    a(href="/api/v1/log") JSON
-                td 
-                    a(href="/api/v1/log?format=html") HTML
 
-    
 
-        
+
         h2 Links
-        table(class='days')
+        table(class='links')
             tr 
                 th Service
-                th URL
+                th Description               
+                th Link
             tr 
-                td  Github
+                td Github
+                td Source code and issue tracking
                 td 
-                    a(href="https://github.com/gf78/smartmetervienna" target="_blank") https://github.com/gf78/smartmetervienna
-            
-            tr 
-                td  Docker Hub
-                td 
-                    a(href="https://hub.docker.com/r/gf78/smartmetervienna" target="_blank") https://hub.docker.com/r/gf78/smartmetervienna
-            
-            tr                
-                td  Wiener Netze
-                td 
-                    a(href="https://smartmeter-web.wienernetze.at/" target="_blank") https://smartmeter-web.wienernetze.at/
+                    a(href="https://github.com/gf78/smartmetervienna") [GO]
 
+            tr 
+                td Docker Hub
+                td Docker image
+                td 
+                    a(href="https://hub.docker.com/r/gf78/smartmetervienna") [GO]
+
+            tr 
+                td Grafana
+                td Dashboard Template
+                td 
+                    a(href="#") [GO]
+
+            tr 
+                td Wiener Netze
+                td SmartMeter Webinterface
+                td 
+                    a(href="https://smartmeter-web.wienernetze.at/") [GO]
 
 
   

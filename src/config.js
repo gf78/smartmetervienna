@@ -1,10 +1,18 @@
 "use strict";
 const dotenv = require("dotenv");
+const packagejson = require("../package.json");
 
 const getConfig = () => {
   dotenv.config();
 
   return {
+    service: {
+      name: packagejson?.name,
+      version: packagejson?.version,
+      description: packagejson?.description,
+      homepage: packagejson?.homepage,
+      author: packagejson?.author,
+    },
     logger: {
       level: process.env.LOG_LEVEL || "error",
     },

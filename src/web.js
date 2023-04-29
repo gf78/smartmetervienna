@@ -1,23 +1,28 @@
 "use strict";
 
 const express = require("express");
-const helmet = require("helmet");
 
-const Logger = require("./logger.js");
+const Logger = require("../lib/logger.js");
+const home = require("./home.js");
+const apiLog = require("../api/log.js");
+const apiMeter = require("../api/meter.js");
+const swagger = require("./swagger.js");
 
 class Web {
   #app;
   #logger;
-  #meter;
+  #getMeterData;
   #store;
   #config;
+  #apiPath;
 
   constructor(
     {
       port = 80,
       views = "./views",
       engine = "pug",
-      meter,
+      apiPath = "/api/v1",
+      getMeterData,
       logger = new Logger(),
       store = () => {},
       config = {},
@@ -25,6 +30,8 @@ class Web {
       port: 80,
       views: "./views",
       engine: "pug",
+      apiPath: "/api/v1",
+      getMeterData: () => {},
       logger: new Logger(),
       store: () => {},
       config: {},
@@ -33,64 +40,43 @@ class Web {
     this.#logger = typeof logger === "object" ? logger : new Logger();
 
     try {
-      this.#meter = meter;
+      this.#getMeterData = getMeterData;
+      this.#apiPath = apiPath;
       this.#store = store;
       this.#config = config;
       this.#app = express();
-      this.#app.use(helmet());
       this.#app.set("view engine", engine);
       this.#app.set("views", views);
 
-      this.#app.get("/api/v1/wattage/:date?", async (request, response) => {
-        try {
-          this.#logger.verbose(
-            "[API] GET /api/v1/wattage/:date?",
-            request.params?.date
-          );
-          const data = await this.#meter.getWattage(request.params?.date);
-          this.#sendResponse({ request, response, data });
+      // Home
+      this.#app.use("/", home({ config: this.#config, logger: this.#logger }));
 
-          if (
-            !!data &&
-            (request.query?.save === true ||
-              String(request.query?.store).toLowerCase() === "true")
-          ) {
-            this.#store(
-              data,
-              String(request.query?.notify).toLowerCase() === "true"
-                ? true
-                : false
-            );
-          }
-        } catch (error) {
-          this.#logger.error("[API] /api/v1/wattage/:date", error);
-          response.json({ error });
-        }
-      });
-
-      this.#app.get("/api/v1/log", (request, response) => {
-        try {
-          this.#logger.verbose("[API] GET /api/v1/log");
-          this.#sendResponse({ request, response, data: logger.getLog() });
-        } catch (error) {
-          this.#logger.error("[API] /api/v1/log", error);
-          response.json({ error });
-        }
-      });
-
-      this.#app.get("/", (request, response) => {
-        this.#logger.verbose("[API] GET /");
-        const days = Array.from({ length: 6 }, (_, i) => {
-          const date = new Date();
-          date.setDate(date.getDate() - i - 2);
-          return date.toISOString().slice(0, 10);
-        });
-
-        response.render("home", {
+      // API : log
+      this.#app.use(
+        apiPath,
+        apiLog({
           config: this.#config,
-          days,
-          log: this.#logger.getRecent(),
-        });
+          logger: this.#logger,
+          send: this.#send,
+        })
+      );
+
+      // API : meter
+      this.#app.use(
+        apiPath,
+        apiMeter({
+          getMeterData: this.#getMeterData,
+          logger: this.#logger,
+          send: this.#send,
+          store: this.#store,
+        })
+      );
+
+      //API swagger documentation: /api-docs#
+      swagger({
+        app: this.#app,
+        apiPath,
+        config: this.#config,
       });
 
       this.#app.listen(port, () => {
@@ -101,14 +87,14 @@ class Web {
     }
   }
 
-  #sendResponse = ({ request, response, data, template = "api" }) => {
+  #send = ({ request, response, data, template = "api" }) => {
     if (String(request.query?.format).toLowerCase() === "html") {
-      return response.render(template, {
-        url: request.url,
+      return response.status(200).render(template, {
+        url: this.#apiPath + request.url,
         response: JSON.stringify(data, null, 4),
       });
     } else {
-      return response.json(data);
+      return response.status(200).json(data);
     }
   };
 }
