@@ -25,8 +25,8 @@ const getConfig = () => {
       url: process.env.INLUXDB_URL || null,
       token: process.env.INLUXDB_TOKEN || null,
       organisation: process.env.INLUXDB_ORGANISATION || null,
-      bucket: process.env.INLUXDB_BUCKET || null,
-      measurement: process.env.INLUXDB_MEASUREMENT || "Wattage_15min_Wh",
+      bucket: process.env.INLUXDB_BUCKET || "smartmetervienna",
+      measurement: process.env.INLUXDB_MEASUREMENT || "Consumption_15min_Wh",
     },
     mailer: {
       enabled:

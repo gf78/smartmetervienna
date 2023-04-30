@@ -72,12 +72,6 @@ html
 
 -//
 
-
-
-
-
-
-
         h2 Configuration
         table(class='config')
             each val, key in config
@@ -88,10 +82,6 @@ html
                                 td -
                                 td= key2
                                 td(class='pre')= JSON.stringify(val2===undefind || val2===null ? "" : val2, null, 4).replace(/(^"|"$)/g, '')
-
-
-
-
 
 
         h2 Links

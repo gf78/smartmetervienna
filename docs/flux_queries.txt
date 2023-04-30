@@ -1,0 +1,84 @@
+
+===================================================================
+Load 15min
+===================================================================
+
+import "timezone"
+import "date"
+option location = timezone.location(name: "Europe/Vienna")
+
+bucket = ${bucket:doublequote}
+measurement = ${measurement:doublequote}
+
+from(bucket: bucket)
+|> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+|> filter(fn: (r) => r["_measurement"] == measurement)
+|> keep(columns: ["_value", "_time"])
+|> map(fn: (r) => ({ r with _value: float(v: r._value) * 4.0}))
+
+
+
+
+
+===================================================================
+Consumption 15min
+===================================================================
+
+import "timezone"
+import "date"
+option location = timezone.location(name: "Europe/Vienna")
+
+bucket = ${bucket:doublequote}
+measurement = ${measurement:doublequote}
+
+from(bucket: bucket)
+|> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+|> filter(fn: (r) => r["_measurement"] == measurement)
+|> keep(columns: ["_value", "_time"])
+
+ 
+
+
+===================================================================
+Consumption 1h
+===================================================================
+
+import "timezone"
+import "date"
+option location = timezone.location(name: "Europe/Vienna")
+
+bucket = ${bucket:doublequote}
+measurement = ${measurement:doublequote}
+
+from(bucket: bucket)
+|> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+|> filter(fn: (r) => r["_measurement"] == measurement)
+|> keep(columns: ["_value", "_time"])
+|> aggregateWindow(fn: sum, every: 1h)
+|> timeShift(duration:-1h)
+
+
+
+
+===================================================================
+Consumption 1d
+===================================================================
+
+import "timezone"
+import "date"
+option location = timezone.location(name: "Europe/Vienna")
+
+bucket = ${bucket:doublequote}
+measurement = ${measurement:doublequote}
+
+from(bucket: bucket)
+|> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+|> filter(fn: (r) => r["_measurement"] == measurement)
+|> keep(columns: ["_value", "_time"])
+|> aggregateWindow(fn: sum, every: 1h)
+|> timeShift(duration:-1h)
+|> aggregateWindow(fn: sum, every: 1d)
+|> timeShift(duration:-1d)
+
+
+
