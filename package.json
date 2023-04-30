@@ -1,6 +1,6 @@
 {
   "name": "smartmetervienna",
-  "version": "0.1.5",
+  "version": "1.0.0",
   "author": "GF78",
   "description": "Fetch smart meter data (Vienna/Austria) and store it to influx database",
   "homepage": "https://github.com/gf78/smartmetervienna#readme",
