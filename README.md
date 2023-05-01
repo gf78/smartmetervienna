@@ -23,11 +23,12 @@
 ## Features
 
 - Support **smart meters** used in **Vienna** by Wiener Netze
-- Retrieve **power consumption** for a specific day (15 minutes interval)
+- Retrieve **power consumption** for a specific day or for a date range (max. 3yrs)
 - Store values to **influx database** (V2)
-- Run daily **cron job** to store data
+- Run daily **cron job** to store data of prev. day
 - Retrieve data via **REST API** without authorization
 - **Swagger**: api-docs.json download, interactive Web UI
+- Manually import measurements for date range (swagger UI)
 - Check service status on **Web UI**
 - Receive **email notifications** about data update status
 - Trigger **webhook requests** based on update status
@@ -44,6 +45,10 @@
 ### Swagger UI for Rest API
 
 ![Swagger UI](docs/images/web_ui_swagger.png)
+
+### Import measurement for a period
+
+![Swagger UI](docs/images/web_ui_swagger_import.png)
 
 ### Web UI: Service status
 
@@ -154,7 +159,7 @@ Schedule format: https://crontab.guru/
 
 ## Rest API
 
-### Meter
+### Meter Day
 
 - Yesterday: `/api/v1/meter/day`
 - Day by date: `/api/v1/meter/day/YYYY-MM-DD`
@@ -167,25 +172,38 @@ Schedule format: https://crontab.guru/
 ```json
 [
   {
-    "isValid": true,
-    "error": null,
-    "meter": "AT0010000000000000001xxxxxxxxx",
+    "measurement": "Consumption",
     "unit": "Wh",
-    "measurement": "consumption",
-    "consumptionUnit": "Wh",
-    "loadUnit": "W",
-    "value": 78,
-    "consumption": 78,
-    "load": 312,
-    "timestamp": "2023-04-24T22:00:00.000Z",
-    "periodStart": "2023-04-24T22:00:00.000Z",
-    "periodEnd": "2023-04-24T22:14:59.999Z",
-    "raw": {
-      "value": 78,
-      "timestamp": "2023-04-24T22:00:00.000Z",
-      "isEstimated": false
-    },
-    "lastModified": "2023-04-27T16:27:53.312Z"
+    "value": 97,
+    "timestamp": "2023-03-31T22:00:00.000Z",
+    "start": "2023-03-31T22:00:00.000Z",
+    "end": "2023-03-31T22:14:59.999Z",
+    "text": "97Wh"
+  },
+  {}
+]
+```
+
+### Meter Period
+
+- Yesterday: `/api/v1/meter/period`
+- Date periode: `/api/v1/meter/period?from=YYYY-MM-DD&to=YYYY-MM-DD`
+- Raw data: `/api/v1/meter/period?from=YYYY-MM-DD&to=YYYY-MM-DD&scope=raw`
+- Store to DB: `/api/v1/meter/period?from=YYYY-MM-DD&to=YYYY-MM-DD&store=true`
+- Notify: `/api/v1/meter/period?from=YYYY-MM-DD&to=YYYY-MM-DD&notify=true`
+- HTML format: `/api/v1/meter/period?from=YYYY-MM-DD&to=YYYY-MM-DD&format=html`
+- Combination: `/api/v1/meter/period?from=YYYY-MM-DD&to=YYYY-MM-DD&format=html&store=true&notify=true`
+
+```json
+[
+  {
+    "measurement": "Consumption",
+    "unit": "Wh",
+    "value": 97,
+    "timestamp": "2023-03-31T22:00:00.000Z",
+    "start": "2023-03-31T22:00:00.000Z",
+    "end": "2023-03-31T22:14:59.999Z",
+    "text": "97Wh"
   },
   {}
 ]
