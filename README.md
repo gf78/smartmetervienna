@@ -76,7 +76,7 @@ services:
     environment:
       PORT: 1978
       LOG_LEVEL: "error"
-      CRON_SCHEDULE: "0 0 10 * * *"
+      CRON_SCHEDULE: "0 0 10,16 * * *"
       LOGWIEN_USERNAME: "xxx"
       LOGWIEN_PASSWORD: "xxx"
       INLUXDB_URL: "http://xxx:8086"
@@ -156,13 +156,13 @@ Schedule format: https://crontab.guru/
 
 ### Meter
 
-- Yesterday: `/api/v1/meter`
-- Day by date: `/api/v1/meter/YYYY-MM-DD`
-- Raw data: `/api/v1/meter?scope=raw`
-- Store to DB: `/api/v1/meter?store=true`
-- Notify: `/api/v1/meter?notify=true`
-- HTML format: `/api/v1/meter?format=html`
-- Combination: `/api/v1/meter/YYYY-MM-DD?format=html&store=true&notify=true`
+- Yesterday: `/api/v1/meter/day`
+- Day by date: `/api/v1/meter/day/YYYY-MM-DD`
+- Raw data: `/api/v1/meter/day?scope=raw`
+- Store to DB: `/api/v1/meter/day?store=true`
+- Notify: `/api/v1/meter/day?notify=true`
+- HTML format: `/api/v1/meter/day?format=html`
+- Combination: `/api/v1/meter/day/YYYY-MM-DD?format=html&store=true&notify=true`
 
 ```json
 [

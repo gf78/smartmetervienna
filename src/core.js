@@ -1,14 +1,14 @@
 "use strict";
 const fs = require("fs");
-const Logger = require("../lib/logger.js");
-const Meter = require("../lib/meter.js");
-const DB = require("../lib/db.js");
-const Cron = require("../lib/cron.js");
-const Mailer = require("../lib/mailer.js");
-const Webhook = require("../lib/webhook.js");
+const Logger = require("./lib/logger.js");
+const Meter = require("./lib/meter.js");
+const DB = require("./lib/db.js");
+const Cron = require("./lib/cron.js");
+const Mailer = require("./lib/mailer.js");
+const Webhook = require("./lib/webhook.js");
 
 const getConfig = require("./config.js");
-const Web = require("./web.js");
+const Web = require("./web/index.js");
 
 class Core {
   #config;
@@ -65,7 +65,8 @@ class Core {
         // Web UI + REST API
         this.#web = new Web({
           ...this.#config?.web,
-          getMeterData: this.#meter.getData,
+          getDay: this.#meter.getDay,
+          getPeriod: this.#meter.getPeriod,
           logger: this.#logger,
           store: this.#store,
           config: this.#config,
@@ -167,7 +168,7 @@ class Core {
     this.#logger.verbose("[CORE] Storing data to DB ...");
     let success = false;
     try {
-      const storeData = data?.quarterHours?.consumption || [];
+      const storeData = data?.consumption?.quarterHours || [];
       if (Array.isArray(storeData) && storeData.length > 0) {
         success = await this.#db.write(storeData);
         if (success) {
@@ -188,7 +189,7 @@ class Core {
 
   #cronTask = async () => {
     try {
-      const data = await this.#meter.getData();
+      const data = await this.#meter.getDay();
       if (data.valid) {
         this.#store(data, true);
       } else {

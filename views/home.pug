@@ -7,6 +7,12 @@ html
         p 
             = config.service.version
 
+
+        h2 Get Started 
+        p   Use the swagger UI (meter/period - Try it out) to import historic meter data into your influx database. Do not forget to enter from- and to-dates and select store=true. (max. range: 3 years) 
+            a(href="/api-docs#/METER/get_meter_period") [IMPORT]
+
+
         h2 Rest API
         table(class='rest-api')
             tr 
@@ -33,11 +39,15 @@ html
                 th Description               
                 th Link
             tr 
-                td Measurements
+                td Day Measurements
                 td Smartmeter measurements of yesterday
                 td 
-                    a(href='/api/v1/meter?format=html') [OPEN]
-
+                    a(href='/api/v1/meter/day?format=html') [OPEN]
+            tr 
+                td Period Measurements
+                td Smartmeter measurements of a period (yesterday-yesterday)
+                td 
+                    a(href='/api/v1/meter/period?format=html') [OPEN]
             tr 
                 td Log
                 td Logfile entries

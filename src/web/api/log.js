@@ -12,7 +12,7 @@ module.exports = function ({ logger, send }) {
    */
 
   /**
-   * Get log
+   * Retrieve log data
    * @route GET /log
    * @group LOG
    * @param {enum} [format.query.optional = json] - Format of the resonse (default: json) - eg: json,html

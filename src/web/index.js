@@ -4,14 +4,15 @@ const express = require("express");
 
 const Logger = require("../lib/logger.js");
 const home = require("./home.js");
-const apiLog = require("../api/log.js");
-const apiMeter = require("../api/meter.js");
+const apiLog = require("./api/log.js");
+const apiMeter = require("./api/meter.js");
 const swagger = require("./swagger.js");
 
 class Web {
   #app;
   #logger;
-  #getMeterData;
+  #getDay;
+  #getPeriod;
   #store;
   #config;
   #apiPath;
@@ -22,7 +23,8 @@ class Web {
       views = "./views",
       engine = "pug",
       apiPath = "/api/v1",
-      getMeterData,
+      getDay = () => {},
+      getPeriod = () => {},
       logger = new Logger(),
       store = () => {},
       config = {},
@@ -31,7 +33,8 @@ class Web {
       views: "./views",
       engine: "pug",
       apiPath: "/api/v1",
-      getMeterData: () => {},
+      getDay: () => {},
+      getPeriod: () => {},
       logger: new Logger(),
       store: () => {},
       config: {},
@@ -40,7 +43,8 @@ class Web {
     this.#logger = typeof logger === "object" ? logger : new Logger();
 
     try {
-      this.#getMeterData = getMeterData;
+      this.#getDay = getDay;
+      this.#getPeriod = getPeriod;
       this.#apiPath = apiPath;
       this.#store = store;
       this.#config = config;
@@ -65,7 +69,8 @@ class Web {
       this.#app.use(
         apiPath,
         apiMeter({
-          getMeterData: this.#getMeterData,
+          getDay: this.#getDay,
+          getPeriod: this.#getPeriod,
           logger: this.#logger,
           send: this.#send,
           store: this.#store,
