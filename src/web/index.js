@@ -1,40 +1,44 @@
 "use strict";
 
 const express = require("express");
+const startOfYesterday = require("date-fns/startOfYesterday");
 
 const Logger = require("../lib/logger.js");
-const home = require("./home.js");
+const authorize = require("../lib/authorize.js");
 const apiLog = require("./api/log.js");
 const apiMeter = require("./api/meter.js");
 const swagger = require("./swagger.js");
 
+const yesterday = () => {
+  const date = startOfYesterday();
+  return `${date.getFullYear()}-${("0" + (date.getMonth() + 1)).slice(-2)}-${(
+    "0" + date.getDate()
+  ).slice(-2)}`;
+};
+
 class Web {
   #app;
   #logger;
-  #getDay;
-  #getPeriod;
-  #store;
   #config;
-  #apiPath;
 
   constructor(
     {
       port = 80,
+      apiPath = "/api/v1",
+      apiKey = null,
       views = "./views",
       engine = "pug",
-      apiPath = "/api/v1",
-      getDay = () => {},
-      getPeriod = () => {},
+      meter,
       logger = new Logger(),
       store = () => {},
       config = {},
     } = {
       port: 80,
+      apiPath: "/api/v1",
+      apiKey: null,
       views: "./views",
       engine: "pug",
-      apiPath: "/api/v1",
-      getDay: () => {},
-      getPeriod: () => {},
+      meter,
       logger: new Logger(),
       store: () => {},
       config: {},
@@ -43,17 +47,73 @@ class Web {
     this.#logger = typeof logger === "object" ? logger : new Logger();
 
     try {
-      this.#getDay = getDay;
-      this.#getPeriod = getPeriod;
-      this.#apiPath = apiPath;
-      this.#store = store;
       this.#config = config;
       this.#app = express();
       this.#app.set("view engine", engine);
       this.#app.set("views", views);
 
+      // Login
+      this.#app.get("/login", (req, res) => {
+        res.render("login");
+      });
+
+      // Protect all following routes
+      this.#app.use(
+        authorize({ apiKey, login: "/login", logger: this.#logger })
+      );
+
       // Home
-      this.#app.use("/", home({ config: this.#config, logger: this.#logger }));
+      this.#app.get("/", (req, res) => {
+        res.render("home", {
+          config,
+        });
+      });
+
+      // Log
+      this.#app.get("/log", (req, res) => {
+        res.render("log", {
+          log: logger.getLog(),
+        });
+      });
+
+      // Config
+      this.#app.get("/config", (req, res) => {
+        res.render("config", {
+          config: config._filtered,
+        });
+      });
+
+      // Info
+      this.#app.get("/info", (req, res) => {
+        res.render("info");
+      });
+
+      // Import
+      this.#app.get("/import", async (req, res) => {
+        let count = null;
+        try {
+          if (req?.query?.from) {
+            count = 0;
+            const data = await meter.getMeasurements({
+              from: req?.query?.from,
+              to: req?.query?.to,
+              id: req?.query?.id,
+            });
+            if (Array.isArray(data)) {
+              count = store(data) ? data.length : 0;
+            }
+          }
+        } catch (error) {
+          this.#logger.error("[WEB] Could not import measurements", error);
+        }
+
+        res.render("import", {
+          config,
+          count,
+          from: req?.query?.from || yesterday(),
+          to: req?.query?.to || yesterday(),
+        });
+      });
 
       // API : log
       this.#app.use(
@@ -61,7 +121,6 @@ class Web {
         apiLog({
           config: this.#config,
           logger: this.#logger,
-          send: this.#send,
         })
       );
 
@@ -69,11 +128,9 @@ class Web {
       this.#app.use(
         apiPath,
         apiMeter({
-          getDay: this.#getDay,
-          getPeriod: this.#getPeriod,
+          meter,
           logger: this.#logger,
-          send: this.#send,
-          store: this.#store,
+          store,
         })
       );
 
@@ -91,17 +148,6 @@ class Web {
       this.#logger.error("[WEB] Could not create instance", error);
     }
   }
-
-  #send = ({ request, response, data, template = "api" }) => {
-    if (String(request.query?.format).toLowerCase() === "html") {
-      return response.status(200).render(template, {
-        url: this.#apiPath + request.url,
-        response: JSON.stringify(data, null, 4),
-      });
-    } else {
-      return response.status(200).json(data);
-    }
-  };
 }
 
 module.exports = Web;

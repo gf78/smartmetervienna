@@ -48,15 +48,15 @@
 
 ### Import measurement for a period
 
-![Swagger UI](docs/images/web_ui_swagger_import.png)
+![Swagger UI Import](docs/images/web_ui_swagger_import.png)
 
 ### Web UI: Service status
 
-![Swagger UI](docs/images/web_ui_status.png)
+![Web UI Status](docs/images/web_ui_status.png)
 
 ### Web UI: Measurements
 
-![Swagger UI](docs/images/web_ui_api.png)
+![Web UI Measurements](docs/images/web_ui_api.png)
 
 ## Prerequisites
 

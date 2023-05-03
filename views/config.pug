@@ -1,0 +1,16 @@
+doctype html
+html
+  include head.pug
+  body
+
+        h1 Configuration
+        table(class='config')
+            each val, key in config
+                tr
+                    th(colspan=3)= key
+                        each val2, key2 in val
+                            tr
+                                td -
+                                td= key2
+                                td(class='pre')= JSON.stringify(val2===undefind || val2===null ? "" : val2, null, 4).replace(/(^"|"$)/g, '')
+

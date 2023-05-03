@@ -2,7 +2,7 @@
 const dotenv = require("dotenv");
 const packagejson = require("../package.json");
 
-const getConfig = () => {
+const getFullConfig = () => {
   dotenv.config();
 
   return {
@@ -19,7 +19,7 @@ const getConfig = () => {
     meter: {
       username: process.env.LOGWIEN_USERNAME || null,
       password: process.env.LOGWIEN_PASSWORD || null,
-      meterId: process.env.METER_ID || null,
+      id: process.env.METER_ID || null,
     },
     db: {
       url: process.env.INLUXDB_URL || null,
@@ -76,7 +76,11 @@ const getConfig = () => {
         failure: process.env.WEBHOOK_URL_FAILURE || null,
       },
     },
-    web: { port: Number.parseInt(process.env.PORT) || 1978 },
+    web: {
+      port: Number.parseInt(process.env.PORT) || 1978,
+      apiPath: process.env.API_PATH || "/api/v1",
+      apiKey: process.env.API_KEY || null,
+    },
     cron: {
       schedule: process.env.CRON_SCHEDULE || null,
     },
@@ -85,6 +89,40 @@ const getConfig = () => {
       systemStart: new Date(),
     },
   };
+};
+
+const getFilterConfig = (config) => {
+  const filteredConfig = {};
+
+  for (const [groupKey, groupValue] of Object.entries(
+    config || getFullConfig()
+  )) {
+    filteredConfig[groupKey] = {};
+    for (const [settingsKey, settingsValue] of Object.entries(groupValue)) {
+      if (
+        String(settingsKey || "")
+          .toLowerCase()
+          .indexOf("key") === -1 &&
+        String(settingsKey || "")
+          .toLowerCase()
+          .indexOf("pass") === -1 &&
+        String(settingsKey || "")
+          .toLowerCase()
+          .indexOf("token") === -1
+      ) {
+        filteredConfig[groupKey][settingsKey] = settingsValue;
+      } else {
+        filteredConfig[groupKey][settingsKey] = "***";
+      }
+    }
+  }
+
+  return filteredConfig;
+};
+
+const getConfig = () => {
+  const config = getFullConfig();
+  return { ...config, _filtered: getFilterConfig(config) };
 };
 
 module.exports = getConfig;

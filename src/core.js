@@ -32,6 +32,7 @@ class Core {
       this.#logger = new Logger(this.#config.logger);
       try {
         // SmartMeter Connector
+
         this.#meter = new Meter({
           ...this.#config?.meter,
           logger: this.#logger,
@@ -65,8 +66,7 @@ class Core {
         // Web UI + REST API
         this.#web = new Web({
           ...this.#config?.web,
-          getDay: this.#meter.getDay,
-          getPeriod: this.#meter.getPeriod,
+          meter: this.#meter,
           logger: this.#logger,
           store: this.#store,
           config: this.#config,

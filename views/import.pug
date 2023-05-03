@@ -1,0 +1,33 @@
+doctype html
+html
+  include head.pug
+  body
+
+        h1 Import Measurements
+        p Store measurements of a date range (max. 3 years) into the database
+
+  if count !== null && count !== undefined 
+    h2.alert 
+      =count 
+      | 
+      | measurments stored!
+
+  form( method='GET', id='form')
+    table 
+        tr 
+          td  From (*)
+          td 
+            input(type='text', name='from', value= from, minlength='10', maxlength='10', required)
+        tr 
+          td  To
+          td 
+            input(type='text', name='to', value= to, minlength='10', maxlength='10')           
+        tr 
+          td  Meter ID
+          td 
+            input(type='text', name='id', value='', minlength='33', maxlength='33')
+        tr 
+          td  
+          td
+            input(type='submit', value='Import', onClick='this.subit();this.disabled=true;')                      
+

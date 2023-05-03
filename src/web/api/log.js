@@ -1,6 +1,6 @@
 const express = require("express");
 
-module.exports = function ({ logger, send }) {
+module.exports = function ({ logger }) {
   const router = express.Router();
 
   /**
@@ -12,21 +12,30 @@ module.exports = function ({ logger, send }) {
    */
 
   /**
-   * Retrieve log data
+   * Retrieve log
    * @route GET /log
    * @group LOG
-   * @param {enum} [format.query.optional = json] - Format of the resonse (default: json) - eg: json,html
-   * @produces application/json application/xhtml+xml
+   * @param {enum} [level.query ] - filter by level - eg: error,debug,warn,data,info,verbose,silly
+   * @param {int} [length.query] - max. number of entries - eg: 10
+   * @param {enum} [sort.query = asc] - sort order - eg: asc,desc
+   * @produces application/json
    * @returns {Array.<LogEntry>} List of LogEntries - [...]
    */
 
   router.get("/log", (request, response) => {
     try {
       logger.verbose("[API] GET /log");
-      send({ request, response, data: logger.getLog() });
+
+      const data = logger.getLog({
+        level: request?.query?.level,
+        length: request?.query?.length,
+        sort: request?.query?.sort,
+      });
+
+      response.status(200).json(data);
     } catch (error) {
       logger.error("[API] /log", error);
-      response.error(500).json({ error });
+      response.status(500).json({ error });
     }
   });
 

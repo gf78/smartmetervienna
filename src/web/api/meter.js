@@ -1,74 +1,16 @@
 const express = require("express");
 
-module.exports = function ({
-  logger,
-  send,
-  store: execStore,
-  getDay,
-  getPeriod,
-}) {
+module.exports = function ({ logger, store, meter }) {
   const router = express.Router();
 
-  /*
-   *========== RAW B2C (Day) =================
-   */
   /**
-   * @typedef RawDayPoint
+   * @typedef Measurement
    * @property {int} value.required - Measured value - eg: 1234
    * @property {string} timestamp.required - ISO timestamp - eg: 2023-12-31T15:00:00.000Z
-   * @property {boolean} isEstimated.required - Indication of value is estimated or final - eg: false, true
    */
 
   /**
-   * @typedef RawDayStatistics
-   * @property {int} maximum.required - Measured maximum value - eg: 999
-   * @property {int} minimum.required - Measured minimum value - eg: 333
-   * @property {int} average.required - Measured average value - eg: 666
-   */
-
-  /**
-   * @typedef RawDay
-   * @property {boolean} quarter-hour-opt-in.required - Status of opt-in - eg: false, true
-   * @property {Array.<RawDayPoint>} values.required - Measured values
-   * @property {RawDayStatistics.model} statistics.required - min, max, avg values
-   */
-
-  /*
-   *========== RAW B2B (Range) =================
-   */
-
-  /**
-   * @typedef RawPeriodMesswerte
-   * @property {int} messert.required - Messert - 95
-   * @property {string} zeitVon.required - Start of periode, ISO timestamp - eg: 2023-12-31T15:00:00.000Z
-   * @property {string} ZeitBis.required - End of periode, ISO timestamp - eg: 2023-12-31T15:14:59.999Z
-   * @property {string} qualitaet.required - Qualität - eg: VAL
-   */
-
-  /**
-   * @typedef RawPeriodZaehlwerk
-   * @property {string} obisCode.required - obisCode - 1-1:1.9.0
-   * @property {string} einheit.required - Einheit - WH
-   * @property {Array.<RawPeriodMesswerte>} messwerte.required - Messwerte
-   */
-
-  /**
-   * @typedef RawPeriodZaehlpunkt
-   * @property {Array.<RawPeriodZaehlwerk>} zaehlwerke.required - Zählwerke
-   * @property {string} zuaehlpunkt.required - Zählpunkt - AT0010000000000000001xxxxxxxxxxxx
-   */
-
-  /**
-   * @typedef RawPeriod
-   * @property {Array.<RawPeriodZaehlpunkt>} zaehlpunkte.required - Zählwerke
-   */
-
-  /*
-   *========== OWN FORMAT =================
-   */
-
-  /**
-   * @typedef Point
+   * @typedef EnhancedMeasurement
    * @property {enum} measurement.required - Type of measurement - eg: Consumption,Load_Avg
    * @property {enum} unit.required - Unit of value - eg: Wh,kWh,W
    * @property {int} value.required - Measured value - eg: 1234
@@ -79,43 +21,29 @@ module.exports = function ({
    */
 
   /**
-   * @typedef Load
-   * @property {Array.<Point>} quarterHours.required - Measured load in 15min interval
+   * @typedef Raw
+   * @property {Array.<Zaehlpunkt>} zaehlpunkte.required - Zählwerke
    */
 
   /**
-   * @typedef Consumption
-   * @property {Array.<Point>} quarterHours.required - Measured consumption in 15min interval
-   * @property {Array.<Point>} hours.required - Measured consumption in 1h intervals
-   * @property {Array.<Point>} days.required - Measured consumption in 1d intervals
-   * @property {Point.model} total.required - Total measured consumption
+   * @typedef Zaehlpunkt
+   * @property {Array.<Zaehlwerk>} zaehlwerke.required - Zählwerke
+   * @property {string} zuaehlpunkt.required - Zählpunkt - AT0010000000000000001xxxxxxxxxxxx
    */
 
   /**
-   * @typedef Day
-   * @property {string} meter.required - ID of smartmeter - eg: AT0010000000000000001xxxxxxxxxxxx
-   * @property {string} retrieved.required - Day when data was retrieved, ISO timestamp - eg: 2023-12-02T08:00:01.700Z
-   * @property {string} measured - Day of measurement, ISO timestamp (only available for day endpoint) - eg: 2023-12-01T22:00:00.000Z
-   * @property {boolean} valid - True, if data is correct and not estimated  (only available for day endpoint) - eg: false, true
-   * @property {RawDay.model} raw.required - Raw data received (differs for day and peripd endpoints)
-   * @property {Consumption.model} consumption.required - consumption in Wh
-   * @property {Load.model} load.required - average load in W
+   * @typedef Zaehlwerk
+   * @property {string} obisCode.required - obisCode - 1-1:1.9.0
+   * @property {string} einheit.required - Einheit - WH
+   * @property {Array.<Messwerte>} messwerte.required - Messwerte
    */
 
   /**
-   * @typedef Period
-   * @property {string} meter.required - ID of smartmeter - eg: AT0010000000000000001xxxxxxxxxxxx
-   * @property {string} retrieved.required - Day when data was retrieved, ISO timestamp - eg: 2023-12-02T08:00:01.700Z
-   * @property {string} measured - Day of measurement, ISO timestamp (only available for day endpoint) - eg: 2023-12-01T22:00:00.000Z
-   * @property {boolean} valid - True, if data is correct and not estimated  (only available for day endpoint) - eg: false, true
-   * @property {RawPeriod.model} raw.required - Raw data received (differs for day and peripd endpoints)
-   * @property {Consumption.model} consumption.required - consumption in Wh
-   * @property {Load.model} load.required - average load in W
-   */
-
-  /**
-   * @typedef Log
-   * @property {Array.<LogEntry>} log.required - severity level - eg: error, debug, warn, data, info, verbose, silly
+   * @typedef Messwerte
+   * @property {int} messert.required - Messert - 95
+   * @property {string} zeitVon.required - Start of periode, ISO timestamp - eg: 2023-12-31T15:00:00.000Z
+   * @property {string} ZeitBis.required - End of periode, ISO timestamp - eg: 2023-12-31T15:14:59.999Z
+   * @property {string} qualitaet.required - Qualität - eg: VAL
    */
 
   const getDateString = (val) =>
@@ -127,116 +55,145 @@ module.exports = function ({
       ? undefined // fix for swagger
       : String(val || "").slice(0, 10) || undefined;
 
-  const getScope = (
-    { data = {}, scope = "full" } = { data: {}, scope: "full" }
-  ) => {
-    switch (String(scope || "full").toLowerCase()) {
-      case "raw":
-        return data?.raw || {};
-      case "consumption":
-        return data?.consumption || [];
-      case "load":
-        return data?.load?.quarterHours || [];
-      case "quarterHours":
-        return data?.consumption?.quarterHours || [];
-      case "hours":
-        return data?.consumption?.hours || [];
-      case "days":
-        return data?.consumption?.days || [];
-      case "total":
-        return data?.consumption?.total || {};
-      case "full":
-      default:
-        return data || {};
-    }
-  };
-
-  const storeAndNotify = (
-    { data = {}, store = false, notify = false } = {
-      data: {},
-      store: false,
-      notify: false,
-    }
-  ) => {
-    if (!!data && (store === true || String(store).toLowerCase() === "true")) {
-      return execStore(
-        data,
-        notify === true || String(notify).toLowerCase() === "true"
-          ? true
-          : false
-      );
-    } else {
-      return false;
-    }
-  };
+  const isTrue = (val) => val === true || String(val).toLowerCase() === "true";
 
   /**
-   * Get measurement data of a single day. Default date = yesterday.
-   * @route GET /meter/day/{date}
+   * Get raw measurment data for a date period.<br/><br/>Max. periode duration = 3 years.<br/>Default range = yesterday/yesterday
+   * @route GET /meter/raw
    * @group METER
-   * @param {string} [date.path] - Date of the measurement (YYYY-MM-DD). (default: yesterday) - e.g. 2023-12-31
-   * @param {enum} [scope.query = full] - Scope of response - eg: full,raw,consumption,load,quarterHours,hours,days,total
-   * @param {boolean} [store.query = false] - Define if the retrieved date should be stored in the database. (default: false) - eg: false, true
-   * @param {boolean} [notify.query = false] - Define if notifications (webhook, email) should be sent after a store attempt to the database. (default: false) - eg: false, true
-   * @param {enum} [format.query = json] - Format of the resonse (default: json) - eg: json,html
-   * @produces application/json application/xhtml+xml
-   * @returns {Day.model} Measurement data
+   * @param {string} [id.query] - Meter ID (Zählpunkt), default: first meter in list - e.g. AT0010000000000000001xxxxxxxxxxxx
+   * @param {string} [from.query] - Periode start (YYYY-MM-DD). (default: yesterday) - e.g. 2023-01-01
+   * @param {string} [to.query] - Periode end (YYYY-MM-DD). (default: yesterday) - e.g. 2023-12-31
+   * @produces application/json
+   * @returns {Raw.model} Measurement data
    */
 
-  router.get("/meter/day/:date?", async (request, response) => {
+  router.get("/meter/raw", async (request, response) => {
     try {
-      const date = getDateString(request.params?.date);
+      const from = getDateString(request.query?.from);
+      const to = getDateString(request.query?.to);
+      const id = request.query?.id;
 
-      logger.verbose("[API] GET /meter/day/:date?", date);
-      const data = await getDay(date);
-
-      const responseData = getScope({ data, scope: request.query?.scope });
-      send({ request, response, data: responseData });
-      storeAndNotify({
-        data,
-        store: request.query?.store,
-        notify: request.query?.notify,
-      });
+      logger.verbose("[API] GET /meter/raw", id, from, to);
+      const data = await meter.getRawMeasurements({ id, from, to });
+      response.status(200).json(data);
     } catch (error) {
-      logger.error("[API] /meter/:date", error);
+      logger.error("[API] /meter/raw", error);
       response.status(500).json({ error });
     }
   });
 
   /**
-   * Get measurments of a date period. Max. periode duration = 3 years. Default range = yesterday/yesterday
-   * @route GET /meter/period
+   * Get measurment data for storage for a date period.<br/>Optionally store it to database.<br/><br/> Max. periode duration = 3 years.<br/> Default range = yesterday/yesterday
+   * @route GET /meter/measurements
    * @group METER
+   * @param {string} [id.query] - Meter ID (Zählpunkt), default: first meter in list - e.g. AT0010000000000000001xxxxxxxxxxxx
    * @param {string} [from.query] - Periode start (YYYY-MM-DD). (default: yesterday) - e.g. 2023-01-01
    * @param {string} [to.query] - Periode end (YYYY-MM-DD). (default: yesterday) - e.g. 2023-12-31
-   * @param {enum} [scope.query = full] - Scope of response - eg: full,raw,consumption,load,quarterHours,hours,days,total
-   * @param {boolean} [store.query = false] - Define if the retrieved date should be stored in the database. (default: false) - eg: false, true
-   * @param {boolean} [notify.query = false] - Define if notifications (webhook, email) should be sent after a store attempt to the database. (default: false) - eg: false, true
-   * @param {enum} [format.query = json] - Format of the resonse (default: json) - eg: json,html
-   * @produces application/json application/xhtml+xml
-   * @returns {Period.model} Measurement data
+   * @param {boolean} [store.query = false] - Define if the retrieved data should be stored in the database. (default: false) - eg: false, true
+   * @produces application/json
+   * @returns {Array.<Measurement>} Measurement data
    */
 
-  router.get("/meter/period", async (request, response) => {
+  router.get("/meter/measurements", async (request, response) => {
     try {
       const from = getDateString(request.query?.from);
       const to = getDateString(request.query?.to);
+      const id = request.query?.id;
 
-      logger.verbose("[API] GET /meter/period", from, to);
-      const data = await getPeriod({ from, to });
-
-      const responseData = getScope({
-        data,
-        scope: request.query?.scope,
-      });
-      send({ request, response, data: structuredClone(responseData) });
-      storeAndNotify({
-        data,
-        store: request.query?.store,
-        notify: request.query?.notify,
-      });
+      logger.verbose(
+        "[API] GET /meter/measurements",
+        id,
+        from,
+        to,
+        request?.query?.store
+      );
+      const data = await meter.getMeasurements({ id, from, to });
+      const success = isTrue(request?.query?.store) ? store(data) : true;
+      response.status(success ? 200 : 500).json(data);
     } catch (error) {
-      logger.error("[API] /meter/period", error);
+      logger.error("[API] /meter/measurements", error);
+      response.status(500).json({ error });
+    }
+  });
+
+  /**
+   * Get load measurment data (15min interval) for a date period.<br/>Max. periode duration = 3 years.<br/>Default range = yesterday/yesterday
+   * @route GET /meter/load
+   * @group METER
+   * @param {string} [id.query] - Meter ID (Zählpunkt), default: first meter in list - e.g. AT0010000000000000001xxxxxxxxxxxx
+   * @param {string} [from.query] - Periode start (YYYY-MM-DD). (default: yesterday) - e.g. 2023-01-01
+   * @param {string} [to.query] - Periode end (YYYY-MM-DD). (default: yesterday) - e.g. 2023-12-31
+   * @produces application/json
+   * @returns {Array.<EnhancedMeasurement>} Measurement data
+   */
+
+  router.get("/meter/load", async (request, response) => {
+    try {
+      const from = getDateString(request.query?.from);
+      const to = getDateString(request.query?.to);
+      const id = request.query?.id;
+
+      logger.verbose("[API] GET /meter/load", id, from, to);
+      const data = await meter.getLoad({ id, from, to });
+      response.status(200).json(data);
+    } catch (error) {
+      logger.error("[API] /meter/load", error);
+      response.status(500).json({ error });
+    }
+  });
+
+  /**
+   * Get consumption measurment data for a date period.<br/>Max. periode duration = 3 years.<br/>Default range = yesterday/yesterday
+   * @route GET /meter/consumption
+   * @group METER
+   * @param {string} [id.query] - Meter ID (Zählpunkt), default: first meter in list - e.g. AT0010000000000000001xxxxxxxxxxxx
+   * @param {string} [from.query] - Periode start (YYYY-MM-DD). (default: yesterday) - e.g. 2023-01-01
+   * @param {string} [to.query] - Periode end (YYYY-MM-DD). (default: yesterday) - e.g. 2023-12-31
+   * @param {enum} [aggregation.query = 15m] - aggregation level of data - eg: 15m,1h,1d,total
+   * @produces application/json
+   * @returns {Array.<EnhancedMeasurement>} Measurement data
+   */
+
+  router.get("/meter/consumption", async (request, response) => {
+    try {
+      const from = getDateString(request.query?.from);
+      const to = getDateString(request.query?.to);
+      const id = request.query?.id;
+
+      logger.verbose(
+        "[API] GET /meter/consumption",
+        id,
+        from,
+        to,
+        request?.query?.aggregation
+      );
+
+      let data = [];
+      switch (String(request?.query?.aggregation).toLowerCase()) {
+        case "1h":
+        case "hour":
+        case "hourly":
+          data = await meter.getConsumption1h({ id, from, to });
+          break;
+        case "1d":
+        case "day":
+        case "daily":
+          data = await meter.getConsumption1d({ id, from, to });
+          break;
+        case "total":
+        case "all":
+          data = await meter.getConsumptionTotal({ id, from, to });
+          break;
+        case "15min":
+        default:
+          data = await meter.getConsumption({ id, from, to });
+          break;
+      }
+
+      response.status(200).json(data);
+    } catch (error) {
+      logger.error("[API] /meter/consumption", error);
       response.status(500).json({ error });
     }
   });

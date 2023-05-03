@@ -1,0 +1,19 @@
+doctype html
+html
+  include head.pug
+  body
+
+        h1 Log
+        table(class='log')
+            tr 
+                th Timestamp
+                th Level
+                th Message
+                th Details
+            each val, key in log
+                tr
+                    td= (new Date(val.timestamp).toLocaleString())
+                    td= val.level           
+                    td= val.message
+                    td(class='break')= JSON.stringify(val.details===undefind || val.details===null ? "" : val.details, null, 4)
+

@@ -123,23 +123,40 @@ class Logger {
   silly = (message, ...details) =>
     this.#logger.log({ level: "silly", message, details });
 
-  getLog = () => {
+  #loadLog = () => {
     try {
-      const data = fs.readFileSync(this.#lastFile);
-      return JSON.parse("[" + String(data).trim().slice(0, -1) + "]");
+      if (this.#lastFile) {
+        const data = fs.readFileSync(this.#lastFile);
+        return JSON.parse("[" + String(data).trim().slice(0, -1) + "]");
+      } else {
+        this.debug("[Logger] No logfile name", error, this.#lastFile);
+        return [];
+      }
     } catch (error) {
-      this.error("[Logger] Can not read/parse log file", error, this.#lastFile);
+      this.debug("[Logger] Can not read/parse log file", error, this.#lastFile);
       return [];
     }
   };
 
-  getRecent = (count = 5, level = "error") => {
+  getLog = ({ level, length, sort = "asc" } = { sort: "asc" }) => {
     try {
-      return (this.getLog() || [])
-        .filter((entry) => entry.level === level)
-        .slice(-count)
-        .reverse();
-    } catch (e) {
+      let data = this.#loadLog() || [];
+
+      if (level && typeof level === "string") {
+        data = data.filter((entry) => entry.level === level);
+      }
+
+      if (sort && String(sort || "").toLowerCase() === "desc") {
+        data = data.reverse();
+      }
+
+      if (length && !Number.isNaN(Number.parseInt(length))) {
+        data = data.slice(0, Number.parseInt(length));
+      }
+
+      return data;
+    } catch (error) {
+      this.debug("[Logger] Can not filter/sort log file", error);
       return [];
     }
   };
