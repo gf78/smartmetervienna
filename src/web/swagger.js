@@ -6,7 +6,7 @@ module.exports = function ({ app, apiPath, config }) {
   let options = {
     swaggerDefinition: {
       info: {
-        //       description: config?.service?.description,
+        description: config?.service?.description,
         title: config?.service?.name,
         version: config?.service?.version,
       },
@@ -37,6 +37,25 @@ module.exports = function ({ app, apiPath, config }) {
 
       security: [{ Header: [] }, { Query: [] }, { Cookie: [] }],
       defaultSecurity: "Header",
+
+      tags: [
+        {
+          name: "Meter",
+          description: "Retrieve your smart meter measurements",
+          externalDocs: {
+            description: "Home",
+            url: "../",
+          },
+        },
+        {
+          name: "Log",
+          description: "Check the service log for errors",
+          externalDocs: {
+            description: "Log",
+            url: "../log",
+          },
+        },
+      ],
     },
     basedir: __dirname, //app absolute path
     files: ["./api/**/*.js"], //Path to the API handle folder

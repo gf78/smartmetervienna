@@ -4,9 +4,12 @@ html
   body
 
         h1 SmartMeter Vienna
-        
-        
-        h2 Version
+            
+        h2 Installed Version
         p 
-            = config.service.version
+          = config.service.version
 
+        h2 Latest available Version
+        p 
+          a(href="https://github.com/gf78/smartmetervienna",target="_blank") 
+            =newestVersion

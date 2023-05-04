@@ -77,12 +77,17 @@ const getFullConfig = () => {
       },
     },
     web: {
-      port: Number.parseInt(process.env.PORT) || 1978,
+      port: !Number.isNaN(Number.parseInt(process.env.PORT))
+        ? Number.parseInt(process.env.PORT) || 1978
+        : 1978,
       apiPath: process.env.API_PATH || "/api/v1",
       apiKey: process.env.API_KEY || null,
     },
     cron: {
       schedule: process.env.CRON_SCHEDULE || null,
+      days: Number.isNaN(Number.parseInt(process.env.CRON_DAYS_IN_PAST))
+        ? Number.parseInt(process.env.PORT) || 7
+        : 7,
     },
     system: {
       environment: process.env.NODE_ENV || null,

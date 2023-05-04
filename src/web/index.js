@@ -1,20 +1,13 @@
 "use strict";
 
 const express = require("express");
-const startOfYesterday = require("date-fns/startOfYesterday");
 
 const Logger = require("../lib/logger.js");
 const authorize = require("../lib/authorize.js");
+const date = require("../lib/date.js");
 const apiLog = require("./api/log.js");
 const apiMeter = require("./api/meter.js");
 const swagger = require("./swagger.js");
-
-const yesterday = () => {
-  const date = startOfYesterday();
-  return `${date.getFullYear()}-${("0" + (date.getMonth() + 1)).slice(-2)}-${(
-    "0" + date.getDate()
-  ).slice(-2)}`;
-};
 
 class Web {
   #app;
@@ -63,9 +56,25 @@ class Web {
       );
 
       // Home
-      this.#app.get("/", (req, res) => {
+      this.#app.get("/", async (req, res) => {
+        let newestVersion = "unkown";
+        try {
+          newestVersion = (
+            await (
+              await fetch(
+                "https://raw.githubusercontent.com/gf78/smartmetervienna/main/package.json"
+              )
+            ).json()
+          )?.version;
+        } catch (error) {
+          this.#logger.debug(
+            "[WEB] Could not load latest version from github",
+            error
+          );
+        }
         res.render("home", {
           config,
+          newestVersion,
         });
       });
 
@@ -110,8 +119,8 @@ class Web {
         res.render("import", {
           config,
           count,
-          from: req?.query?.from || yesterday(),
-          to: req?.query?.to || yesterday(),
+          from: req?.query?.from || date.getDateString(),
+          to: req?.query?.to || date.getDateString(),
         });
       });
 

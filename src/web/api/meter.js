@@ -40,10 +40,15 @@ module.exports = function ({ logger, store, meter }) {
 
   /**
    * @typedef Messwerte
-   * @property {int} messert.required - Messert - 95
+   * @property {int} messwert.required - Messert - 95
    * @property {string} zeitVon.required - Start of periode, ISO timestamp - eg: 2023-12-31T15:00:00.000Z
    * @property {string} ZeitBis.required - End of periode, ISO timestamp - eg: 2023-12-31T15:14:59.999Z
    * @property {string} qualitaet.required - Qualität - eg: VAL
+   */
+
+  /**
+   * @typedef ServerError
+   * @property {string} error.required - Error descritpion
    */
 
   const getDateString = (val) =>
@@ -60,12 +65,14 @@ module.exports = function ({ logger, store, meter }) {
   /**
    * Get raw measurment data for a date period.<br/><br/>Max. periode duration = 3 years.<br/>Default range = yesterday/yesterday
    * @route GET /meter/raw
-   * @group METER
+   * @group Meter
+   * @summary Retrieve raw measurements
    * @param {string} [id.query] - Meter ID (Zählpunkt), default: first meter in list - e.g. AT0010000000000000001xxxxxxxxxxxx
    * @param {string} [from.query] - Periode start (YYYY-MM-DD). (default: yesterday) - e.g. 2023-01-01
    * @param {string} [to.query] - Periode end (YYYY-MM-DD). (default: yesterday) - e.g. 2023-12-31
    * @produces application/json
-   * @returns {Raw.model} Measurement data
+   * @returns {Raw.model} 200 - Measurement data
+   * @returns {ServerError.model} 500 - Server error
    */
 
   router.get("/meter/raw", async (request, response) => {
@@ -86,13 +93,15 @@ module.exports = function ({ logger, store, meter }) {
   /**
    * Get measurment data for storage for a date period.<br/>Optionally store it to database.<br/><br/> Max. periode duration = 3 years.<br/> Default range = yesterday/yesterday
    * @route GET /meter/measurements
-   * @group METER
+   * @group Meter
+   * @summary Retrieve measurements for DB storage
    * @param {string} [id.query] - Meter ID (Zählpunkt), default: first meter in list - e.g. AT0010000000000000001xxxxxxxxxxxx
    * @param {string} [from.query] - Periode start (YYYY-MM-DD). (default: yesterday) - e.g. 2023-01-01
    * @param {string} [to.query] - Periode end (YYYY-MM-DD). (default: yesterday) - e.g. 2023-12-31
    * @param {boolean} [store.query = false] - Define if the retrieved data should be stored in the database. (default: false) - eg: false, true
    * @produces application/json
-   * @returns {Array.<Measurement>} Measurement data
+   * @returns {Array.<Measurement>} 200 - Measurement data
+   * @returns {ServerError.model} 500 - Server error
    */
 
   router.get("/meter/measurements", async (request, response) => {
@@ -118,41 +127,17 @@ module.exports = function ({ logger, store, meter }) {
   });
 
   /**
-   * Get load measurment data (15min interval) for a date period.<br/>Max. periode duration = 3 years.<br/>Default range = yesterday/yesterday
-   * @route GET /meter/load
-   * @group METER
-   * @param {string} [id.query] - Meter ID (Zählpunkt), default: first meter in list - e.g. AT0010000000000000001xxxxxxxxxxxx
-   * @param {string} [from.query] - Periode start (YYYY-MM-DD). (default: yesterday) - e.g. 2023-01-01
-   * @param {string} [to.query] - Periode end (YYYY-MM-DD). (default: yesterday) - e.g. 2023-12-31
-   * @produces application/json
-   * @returns {Array.<EnhancedMeasurement>} Measurement data
-   */
-
-  router.get("/meter/load", async (request, response) => {
-    try {
-      const from = getDateString(request.query?.from);
-      const to = getDateString(request.query?.to);
-      const id = request.query?.id;
-
-      logger.verbose("[API] GET /meter/load", id, from, to);
-      const data = await meter.getLoad({ id, from, to });
-      response.status(200).json(data);
-    } catch (error) {
-      logger.error("[API] /meter/load", error);
-      response.status(500).json({ error });
-    }
-  });
-
-  /**
    * Get consumption measurment data for a date period.<br/>Max. periode duration = 3 years.<br/>Default range = yesterday/yesterday
    * @route GET /meter/consumption
-   * @group METER
+   * @group Meter
+   * @summary Retrieve enhanced load measurements
    * @param {string} [id.query] - Meter ID (Zählpunkt), default: first meter in list - e.g. AT0010000000000000001xxxxxxxxxxxx
    * @param {string} [from.query] - Periode start (YYYY-MM-DD). (default: yesterday) - e.g. 2023-01-01
    * @param {string} [to.query] - Periode end (YYYY-MM-DD). (default: yesterday) - e.g. 2023-12-31
    * @param {enum} [aggregation.query = 15m] - aggregation level of data - eg: 15m,1h,1d,total
    * @produces application/json
-   * @returns {Array.<EnhancedMeasurement>} Measurement data
+   * @returns {Array.<EnhancedMeasurement>} 200 - Measurement data
+   * @returns {ServerError.model} 500 - Server error
    */
 
   router.get("/meter/consumption", async (request, response) => {
@@ -194,6 +179,34 @@ module.exports = function ({ logger, store, meter }) {
       response.status(200).json(data);
     } catch (error) {
       logger.error("[API] /meter/consumption", error);
+      response.status(500).json({ error });
+    }
+  });
+
+  /**
+   * Get load measurment data (15min interval) for a date period.<br/>Max. periode duration = 3 years.<br/>Default range = yesterday/yesterday
+   * @route GET /meter/load
+   * @group Meter
+   * @summary Retrieve enhanced load measurements
+   * @param {string} [id.query] - Meter ID (Zählpunkt), default: first meter in list - e.g. AT0010000000000000001xxxxxxxxxxxx
+   * @param {string} [from.query] - Periode start (YYYY-MM-DD). (default: yesterday) - e.g. 2023-01-01
+   * @param {string} [to.query] - Periode end (YYYY-MM-DD). (default: yesterday) - e.g. 2023-12-31
+   * @produces application/json
+   * @returns {Array.<EnhancedMeasurement>} 200 - Measurement data
+   * @returns {ServerError.model} 500 - Server error
+   */
+
+  router.get("/meter/load", async (request, response) => {
+    try {
+      const from = getDateString(request.query?.from);
+      const to = getDateString(request.query?.to);
+      const id = request.query?.id;
+
+      logger.verbose("[API] GET /meter/load", id, from, to);
+      const data = await meter.getLoad({ id, from, to });
+      response.status(200).json(data);
+    } catch (error) {
+      logger.error("[API] /meter/load", error);
       response.status(500).json({ error });
     }
   });

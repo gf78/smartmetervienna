@@ -10,6 +10,7 @@
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Configuration](#configuration)
+- [Manual import](#manual-import)
 - [Cron Job](#cron-job)
 - [Rest API](#rest-api)
   - [Meter](#meter)
@@ -23,18 +24,19 @@
 ## Features
 
 - Support **smart meters** used in **Vienna** by Wiener Netze
-- Retrieve **power consumption** for a specific day or for a date range (max. 3yrs)
-- Store values to **influx database** (V2)
-- Run daily **cron job** to store data of prev. day
-- Retrieve data via **REST API** without authorization
-- **Swagger**: api-docs.json download, interactive Web UI
-- Manually import measurements for date range (swagger UI)
-- Check service status on **Web UI**
-- Receive **email notifications** about data update status
-- Trigger **webhook requests** based on update status
+- Retrieve **power consumption** and **avg. load** for a single day or for a date range (max. 3yrs)
+- Store values into **influx database** (V2)
+- **Import measurements** for a single day or a date range manually via the web UI
+- Run daily **cron job** to store data of prev. day(s)
+- Retrieve measurement data via **Rest API**
+- Optional API-KEY **authorization**
+- **Swagger**: API definition and interactive web UI
+- Check service configuration and log on **web UI**
+- Receive **email notifications** about cron job result
+- Trigger **webhook requests** on cron job run
 - **Grafana** dashboard JSON model included
 - Extensive **logging** service
-- Fully **dockerized** based on **Alpine Linux** image
+- **Dockerized** based on **Alpine Linux** image
 
 ## Screenshots
 
@@ -44,19 +46,23 @@
 
 ### Swagger UI for Rest API
 
-![Swagger UI](docs/images/web_ui_swagger.png)
+![Swagger UI](docs/images/swagger_overview.png)
 
-### Import measurement for a period
+![Swagger UI](docs/images/swagger_consumption.png)
 
-![Swagger UI Import](docs/images/web_ui_swagger_import.png)
+### Web UI
 
-### Web UI: Service status
+![Login](docs/images/web_login.png)
 
-![Web UI Status](docs/images/web_ui_status.png)
+![Home](docs/images/web_home.png)
 
-### Web UI: Measurements
+![Import](docs/images/web_import.png)
 
-![Web UI Measurements](docs/images/web_ui_api.png)
+![Log](docs/images/web_log.png)
+
+![Config](docs/images/web_config.png)
+
+![Info](docs/images/web_info.png)
 
 ## Prerequisites
 
@@ -80,8 +86,10 @@ services:
       - "80:1978"
     environment:
       PORT: 1978
+      API_KEY: "xxx"
       LOG_LEVEL: "error"
-      CRON_SCHEDULE: "0 0 10,16 * * *"
+      CRON_SCHEDULE: "0 12 * * *"
+      CRON_DAYS_IN_PAST: "7"
       LOGWIEN_USERNAME: "xxx"
       LOGWIEN_PASSWORD: "xxx"
       INLUXDB_URL: "http://xxx:8086"
@@ -119,80 +127,60 @@ volumes:
 
 Use the following environment variables to configure the service
 
-| Variable             | Description                                                    | Mandatory |
-| -------------------- | -------------------------------------------------------------- | --------- |
-| LOGWIEN_USERNAME     | Username for smart meter portal of Wiener Netze                | yes       |
-| LOGWIEN_PASSWORD     | Password for smart meter portal of Wiener Netze                | yes       |
-| METER_ID             | Meter id (Zählerpunkt) of Wiener Netze                         | no        |
-| INLUXDB_URL          | URL of influx db `http://xxx:8086`                             | no        |
-| INLUXDB_TOKEN        | Token of influx db                                             | no        |
-| INLUXDB_ORGANISATION | Organisation of influx db                                      | no        |
-| INLUXDB_BUCKET       | Bucket of influx db (default: smartmetervienna)                | no        |
-| INLUXDB_MEASUREMENT  | Measurement name for influx db (default: Consumption_15min_Wh) | no        |
-| PORT                 | Web service port `1978`                                        | no        |
-| LOG_LEVEL            | Level of logging service `error`, `info`, `verbose`            | no        |
-| CRON_SCHEDULE        | Schedule for cron job `"0 10,16 * * *`                         | no        |
-| SMTP_HOST            | SMTP server host                                               | no        |
-| SMTP_PORT            | SMTP server port `587`                                         | no        |
-| SMTP_SECURE          | SMTP server sercurity `true`, `false`                          | no        |
-| SMTP_CIPHERS         | SMTP server ciphers `SSLv3`                                    | no        |
-| SMTP_USERNAME        | SMTP server username                                           | no        |
-| SMTP_PASSWORD        | SMTP server password                                           | no        |
-| SMTP_FROM            | Sender email address                                           | no        |
-| MAIL_ENABLED         | Email notifications enabled: `true`, `false`                   | no        |
-| MAIL_TO              | Receipients email address                                      | no        |
-| MAIL_SUBJECT         | Email subject                                                  | no        |
-| MAIL_ON_SUCCESS      | Send otifications on success: `true`, `false`                  | no        |
-| MAIL_ON_FAILURE      | Send otifications on failure: `true`, `false`                  | no        |
-| MAIL_ON_RESTART      | Send otifications on restart: `true`, `false`                  | no        |
-| WEBHOOK_ENABLED      | Webhook notifications enabled: `true`, `false`                 | no        |
-| WEBHOOK_METHOD       | Webhook protocol: `POST`, `GET`                                | no        |
-| WEBHOOK_URL_RESTART  | Webhook URL on restart                                         | no        |
-| WEBHOOK_URL_SUCCESS  | Webhook URL on success                                         | no        |
-| WEBHOOK_URL_FAILURE  | Webhook URL on failure                                         | no        |
+| Variable             | Description                                                                                                                | Mandatory |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------- | --------- |
+| PORT                 | Web UI port `1978`                                                                                                         | no        |
+| API_KEY              | Secure Web UI and Rest API                                                                                                 | no        |
+| LOG_LEVEL            | Level of logging service `error`, `info`, `verbose`                                                                        | no        |
+| CRON_SCHEDULE        | Schedule for cron job `0 10,16 * * *`                                                                                      | no        |
+| CRON_DAYS_IN_PAST    | Number of days in the past should be imported                                                                              | no        |
+| LOGWIEN_USERNAME     | Username for smart meter portal of Wiener Netze                                                                            | yes       |
+| LOGWIEN_PASSWORD     | Password for smart meter portal of Wiener Netze                                                                            | yes       |
+| METER_ID             | Meter id (Zählerpunkt) of Wiener Netze                                                                                     | no        |
+| INLUXDB_URL          | URL of influx db `http://xxx:8086`                                                                                         | no        |
+| INLUXDB_TOKEN        | Token of influx db                                                                                                         | no        |
+| INLUXDB_ORGANISATION | Organisation of influx db                                                                                                  | no        |
+| INLUXDB_BUCKET       | Bucket of influx db (default: smartmetervienna)                                                                            | no        |
+| INLUXDB_MEASUREMENT  | Measurement name for influx db (default: Consumption_15min_Wh)                                                             | no        |
+| SMTP_HOST            | SMTP server host                                                                                                           | no        |
+| SMTP_PORT            | SMTP server port `587`                                                                                                     | no        |
+| SMTP_SECURE          | SMTP server sercurity `true`, `false`                                                                                      | no        |
+| SMTP_CIPHERS         | SMTP server ciphers `SSLv3`                                                                                                | no        |
+| SMTP_USERNAME        | SMTP server username                                                                                                       | no        |
+| SMTP_PASSWORD        | SMTP server password                                                                                                       | no        |
+| SMTP_FROM            | Sender email address                                                                                                       | no        |
+| MAIL_ENABLED         | Email notifications enabled: `true`, `false`                                                                               | no        |
+| MAIL_TO              | Receipients email address                                                                                                  | no        |
+| MAIL_SUBJECT         | Email subject                                                                                                              | no        |
+| MAIL_ON_SUCCESS      | Send otifications on success: `true`, `false`                                                                              | no        |
+| MAIL_ON_FAILURE      | Send otifications on failure: `true`, `false`                                                                              | no        |
+| MAIL_ON_RESTART      | Send otifications on restart: `true`, `false`                                                                              | no        |
+| WEBHOOK_ENABLED      | Webhook notifications enabled: `true`, `false`                                                                             | no        |
+| WEBHOOK_METHOD       | Webhook protocol: `POST`, `GET`                                                                                            | no        |
+| WEBHOOK_URL_RESTART  | Webhook URL on restart                                                                                                     | no        |
+| WEBHOOK_URL_SUCCESS  | Webhook URL on success, supported placeholders `%%FROM%%`, `%%TO%%`, `%%DAYS%%`, `%%COUNT%%`, `%%RATE%%` and `%%SUCCESS%%` | no        |
+| WEBHOOK_URL_FAILURE  | Webhook URL on failure, supported placeholders `%%FROM%%`, `%%TO%%`, `%%DAYS%%`, `%%COUNT%%`, `%%RATE%%` and `%%SUCCESS%%` | no        |
 
 ## Cron Job
 
-Set `CRON_SCHEDULE` ENV variable for example to `"0 10,16 * * *` to request daily at 10am and 4pm the measurements of the last day and store them into the database. If enabled you will receive email and/or webhook notifications on success/failure.
+Set `CRON_SCHEDULE` ENV variable for example to `"0 10,16 * * *` to request daily at 10am and 4pm the measurements of the last day(s) and store them into the database. If enabled you will receive email and/or webhook notifications on success/failure. It is recommended to set `CRON_DAYS_IN_PAST` to a value greater than 1 to import measurements that where not provided in time by Wiener Netzte on one of the following days.
 
 Schedule format: https://crontab.guru/
 
 ## Rest API
 
-### Meter Day
+See swagger file for more details.
 
-- Yesterday: `/api/v1/meter/day`
-- Day by date: `/api/v1/meter/day/YYYY-MM-DD`
-- Raw data: `/api/v1/meter/day?scope=raw`
-- Store to DB: `/api/v1/meter/day?store=true`
-- Notify: `/api/v1/meter/day?notify=true`
-- HTML format: `/api/v1/meter/day?format=html`
-- Combination: `/api/v1/meter/day/YYYY-MM-DD?format=html&store=true&notify=true`
+### Security
 
-```json
-[
-  {
-    "measurement": "Consumption",
-    "unit": "Wh",
-    "value": 97,
-    "timestamp": "2023-03-31T22:00:00.000Z",
-    "start": "2023-03-31T22:00:00.000Z",
-    "end": "2023-03-31T22:14:59.999Z",
-    "text": "97Wh"
-  },
-  {}
-]
-```
+Set a value for the ENV variable `API_KEY` to activate the authorization for the Rest API and the Web UI. The ApiKey can be provided as header, query param or cookie.
 
-### Meter Period
+### Meter
 
-- Yesterday: `/api/v1/meter/period`
-- Date periode: `/api/v1/meter/period?from=YYYY-MM-DD&to=YYYY-MM-DD`
-- Raw data: `/api/v1/meter/period?from=YYYY-MM-DD&to=YYYY-MM-DD&scope=raw`
-- Store to DB: `/api/v1/meter/period?from=YYYY-MM-DD&to=YYYY-MM-DD&store=true`
-- Notify: `/api/v1/meter/period?from=YYYY-MM-DD&to=YYYY-MM-DD&notify=true`
-- HTML format: `/api/v1/meter/period?from=YYYY-MM-DD&to=YYYY-MM-DD&format=html`
-- Combination: `/api/v1/meter/period?from=YYYY-MM-DD&to=YYYY-MM-DD&format=html&store=true&notify=true`
+- Original response of SmartMeter-Portal: `/api/v1/meter/raw?from=YYYY-MM-DD&to=YYYY-MM-DD`
+- Basic measurements for DB storage: `/api/v1/meter/measurements?from=YYYY-MM-DD&to=YYYY-MM-DD`
+- Enhanced consumption measurements `/api/v1/meter/consumption?from=YYYY-MM-DD&to=YYYY-MM-DD`
+- Enhanced load measurements `/api/v1/meter/load?from=YYYY-MM-DD&to=YYYY-MM-DD`
 
 ```json
 [
@@ -211,8 +199,7 @@ Schedule format: https://crontab.guru/
 
 ### Log
 
-- JSON format: `/api/v1/log`
-- HTML format: `/api/v1/log?format=html`
+- Get log of the current day: `/api/v1/log`
 
 ```json
 [
@@ -229,16 +216,24 @@ Schedule format: https://crontab.guru/
 
 Access the status page: `//your-server:your-port/`
 
+- Home: Check current version and if update is available
+- Import: Manually trigger import of measurements to database
+- Log: Check log entries
+- Config: Check current configuration
+- Info: Further information and links
+
 ## Notifications
 
 ### Email
 
-Configure the SMTP/Email service to receive emails in case of `restart`, `success` and `failure`.
+Configure the SMTP/Email service to receive emails in case of `restart`, cron job `success` and cron job`failure`.
 
 ### Webhook
 
-Configure the webhook service to receive `GET` or `POST` webhook requests in case of `restart`, `success` and `failure`. The payload of a `POST` request will include the retrieved measurement data.
+Configure the webhook service to receive `GET` or `POST` webhook requests in case of `restart`, cron job `success` and cron job `failure`. The payload of a `POST` request will include the retrieved measurement data.
+
+Use the following placeholder in the URL if needed: `%%FROM%%`, `%%TO%%`, `%%DAYS%%`, `%%COUNT%%`, `%%RATE%%` and `%%SUCCESS%%`
 
 ## Grafana
 
-[Grafana Dashboard Model](grafana/dashboard.json)
+Feel free to use the included [Grafana Dashboard Model](grafana/dashboard.json).

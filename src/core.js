@@ -1,11 +1,13 @@
 "use strict";
 const fs = require("fs");
+
 const Logger = require("./lib/logger.js");
 const Meter = require("./lib/meter.js");
 const DB = require("./lib/db.js");
 const Cron = require("./lib/cron.js");
 const Mailer = require("./lib/mailer.js");
 const Webhook = require("./lib/webhook.js");
+const date = require("./lib/date.js");
 
 const getConfig = require("./config.js");
 const Web = require("./web/index.js");
@@ -102,8 +104,12 @@ class Core {
   #notifyFormatter = (text, data) => {
     try {
       return String(text)
-        .replaceAll("%%DAY%%", new Date(data?.measured).toLocaleDateString())
-        .replaceAll("%%VALUE%%", data?.day?.consumption[0].text);
+        .replaceAll("%%FROM%%", data?.job?.from || "(unkown)")
+        .replaceAll("%%TO%%", data?.job?.to || "(unkown)")
+        .replaceAll("%%DAYS%%", data?.job?.days || "(unkown)")
+        .replaceAll("%%COUNT%%", data?.count?.actual || 0)
+        .replaceAll("%%RATE%%", data?.count?.rate + " %" || "(unkown)")
+        .replaceAll("%%SUCCESS%%", data?.success?.overall ? true : false);
     } catch (error) {
       return text;
     }
@@ -113,18 +119,15 @@ class Core {
   #notifyWebhook = ({ success, data }) => {
     try {
       this.#logger.verbose("[CORE] Notify via webhook ...");
-
-      if (success) {
-        this.#webhook.send({
-          cmd: this.#notifyFormatter(
-            this.#config?.webhook?.urls?.success,
-            data
-          ),
-          data,
-        });
-      } else {
-        this.#webhook.send({ cmd: "failure", data });
-      }
+      this.#webhook.send({
+        cmd: this.#notifyFormatter(
+          success
+            ? this.#config?.webhook?.urls?.success
+            : this.#config?.webhook?.urls?.failure,
+          data
+        ),
+        data,
+      });
     } catch (error) {
       this.#logger.error("[CORE] Webhook could not be sent.", error);
     }
@@ -137,13 +140,17 @@ class Core {
       if (success && this.#config.mailer.onSuccess) {
         this.#mailer.send({
           text: this.#notifyFormatter(
-            "[OK] Messdaten wurden in Datenbank gespeichert.\n\nVerbrauch am %%DAY%%: %%VALUE%%",
+            "Datenimport %%FROM%% bis %%TO%% (%%DAYS%% Tage) war zu %%RATE%% erfolgreich.\nEs wurden ingesamt %%COUNT%% Messpunkte gespeichert.\n\n",
             data
           ),
         });
       } else if (!success && this.#config.mailer.onError) {
         this.#mailer.send({
-          text: "[FEHLER] Messdaten konnten nicht in Datenbank gespeichert werden.",
+          text: this.#notifyFormatter(
+            "Datenimport %%FROM%% bis %%TO%% (%%DAYS%% Tage) war zu %%RATE%% erfolgreich.\nEs wurden ingesamt %%COUNT%% Messpunkte gespeichert.\n\n",
+            data
+          ),
+          data,
         });
       }
     } catch (error) {
@@ -163,14 +170,13 @@ class Core {
     }
   };
 
-  // DB: Store data (and notify)
-  #store = async (data, notify = false) => {
+  // DB: Store data
+  #store = async (data) => {
     this.#logger.verbose("[CORE] Storing data to DB ...");
     let success = false;
     try {
-      const storeData = data?.consumption?.quarterHours || [];
-      if (Array.isArray(storeData) && storeData.length > 0) {
-        success = await this.#db.write(storeData);
+      if (Array.isArray(data) && data.length > 0) {
+        success = await this.#db.write(data);
         if (success) {
           this.#logger.info("[CORE] Data stored successfully to DB.");
         } else {
@@ -181,20 +187,45 @@ class Core {
       this.#logger.error("[CORE] Data could not be stored.", error);
     }
 
-    if (notify) {
-      this.#notify({ success, data });
-    }
     return success;
   };
 
   #cronTask = async () => {
     try {
-      const data = await this.#meter.getDay();
-      if (data.valid) {
-        this.#store(data, true);
-      } else {
-        this.#notify({ success: false, data: null });
-      }
+      const { to, from, days } = date.getDateRange(this.#config.cron.days);
+      this.#logger.verbose("[CORE] Run cron job", from, to, days);
+      const measurements = await this.#meter.getMeasurements({ from, to });
+
+      const data = {
+        job: {
+          schedule: this.#config?.cron?.schedule,
+          days: this.#config?.cron?.days,
+          from,
+          to,
+          run: new Date(),
+        },
+        count: {
+          actual: (measurements || []).length,
+          expected: days * 4 * 24,
+        },
+        success: {
+          store: await this.#store(measurements),
+        },
+        measurements,
+      };
+      data.count.rate =
+        data.count.expected > 0
+          ? Math.round((data?.count?.actual / data?.count?.expected) * 100)
+          : 100;
+
+      data.success.fetch = !!(data?.count?.rate === 100);
+      data.success.overall = !!(data?.success?.fetch && data?.success?.store);
+
+      this.#notify({
+        success: data?.success?.overall,
+        data,
+      });
+      return data;
     } catch (error) {
       this.#logger.error("[CORE] Error executing cron task.", error);
     }

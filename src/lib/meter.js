@@ -1,6 +1,5 @@
 "use strict";
 
-const startOfYesterday = require("date-fns/startOfYesterday");
 const startOfDay = require("date-fns/startOfDay");
 const endOfDay = require("date-fns/endOfDay");
 const isValidDate = require("date-fns/isValid");
@@ -8,6 +7,7 @@ const objectPath = require("object-path");
 
 const LogWien = require("./logwien.js");
 const Logger = require("./logger.js");
+const date = require("./date.js");
 
 const B2B = {
   portal: "B2B",
@@ -255,11 +255,7 @@ class Meter {
     if (strVal.length === 10 && isValidDate(new Date(strVal))) {
       return strVal;
     } else {
-      const yesterday = startOfYesterday();
-      return `${yesterday.getFullYear()}-${(
-        "0" +
-        (yesterday.getMonth() + 1)
-      ).slice(-2)}-${("0" + yesterday.getDate()).slice(-2)}`;
+      return date.getDateString();
     }
   };
 

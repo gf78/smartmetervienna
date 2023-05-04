@@ -14,12 +14,14 @@ module.exports = function ({ logger }) {
   /**
    * Retrieve log
    * @route GET /log
-   * @group LOG
+   * @group Log
+   * @summary Find log entries
    * @param {enum} [level.query ] - filter by level - eg: error,debug,warn,data,info,verbose,silly
    * @param {int} [length.query] - max. number of entries - eg: 10
    * @param {enum} [sort.query = asc] - sort order - eg: asc,desc
    * @produces application/json
-   * @returns {Array.<LogEntry>} List of LogEntries - [...]
+   * @returns {Array.<LogEntry>} 200 - ist of LogEntries - [...]
+   * @returns {ServerError.model} 500 - Server error
    */
 
   router.get("/log", (request, response) => {
