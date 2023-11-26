@@ -1,6 +1,6 @@
 {
   "name": "smartmetervienna",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "author": "GF78",
   "description": "Retrieve power consumtion measurements from Wiener Netze, access them via a Rest API, or automatically store them to your influx database.",
   "homepage": "https://github.com/gf78/smartmetervienna#readme",

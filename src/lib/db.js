@@ -46,7 +46,7 @@ class DB {
       measurements.every((measurement) => {
         if (
           typeof measurement === "object" &&
-          measurement?.value &&
+          typeof measurement.value === "number" &&
           measurement?.timestamp
         ) {
           const value = Number.parseInt(measurement?.value);
