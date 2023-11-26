@@ -18,9 +18,10 @@ const B2B = {
   meters: {
     url: "zaehlpunkte?resultType=ALL&loadIdexValues=true&contractActive=true",
     objPath: "0.zaehlpunktnummer",
+    objPathCustomer: "0.geschaeftspartner",
   },
   measurements: {
-    url: "zaehlpunkte/messwerte",
+    url: "zaehlpunkte/%CUSTOMER%/%ID%/messwerte",
     params: {
       id: "zaehlpunkt",
       from: "datumVon",
@@ -30,7 +31,7 @@ const B2B = {
       },
     },
     isoDate: false,
-    objPath: "0.zaehlwerke.0.messwerte",
+    objPath: "zaehlwerke.0.messwerte",
     value: "messwert",
     timestamp: "zeitVon",
   },
@@ -38,18 +39,27 @@ const B2B = {
 
 class Meter {
   #id;
+  #customer;
   #config;
   #fetch;
   #logger;
 
   constructor(
-    { username, password, id, logger = new Logger(), config = B2B } = {
+    {
+      username,
+      password,
+      id,
+      customer,
+      logger = new Logger(),
+      config = B2B,
+    } = {
       config: B2B,
       logger: new Logger(),
     }
   ) {
     try {
       this.#id = typeof id === "string" ? id : null;
+      this.#customer = typeof customer === "string" ? customer : null;
       this.#config = config;
       this.#logger = typeof logger === "object" ? logger : new Logger();
       const logwien = new LogWien({
@@ -113,6 +123,31 @@ class Meter {
       this.#id = null;
     }
     return this.#id;
+  };
+
+  getCustomer = async () => {
+    if (!this.#customer) {
+      this.#customer = await this.#getDefaultCustomer();
+    }
+    return this.#customer;
+  };
+
+  #getDefaultCustomer = async () => {
+    try {
+      this.#logger.verbose("[METER] Get customer of default meter ...");
+      const meters = await this.#curl({ url: this.#config.meters.url });
+      this.#customer = objectPath.get(
+        meters,
+        this.#config.meters.objPathCustomer
+      );
+    } catch (error) {
+      this.#logger.error(
+        "[METER] Could not retrieve customer ID of default meter.",
+        error
+      );
+      this.#customer = null;
+    }
+    return this.#customer;
   };
 
   #getTextValue = (value, unit = "") => {
@@ -308,10 +343,11 @@ class Meter {
     }
   };
 
-  getRawMeasurements = async ({ id, from, to } = {}) => {
+  getRawMeasurements = async ({ id, customer, from, to } = {}) => {
     this.#logger.verbose("[METER] Get raw measurments");
     try {
       const valId = id ? id : await this.getId();
+      const valCustomer = customer ? customer : await this.getCustomer();
       let valFrom = this.#parseDateParam(from);
       let valTo = this.#parseDateParam(to || from);
 
@@ -322,6 +358,7 @@ class Meter {
 
       const url = String(this.#config?.measurements?.url || "")
         .replaceAll("%ID%", valId)
+        .replaceAll("%CUSTOMER%", valCustomer)
         .replaceAll("%FROM%", valFrom)
         .replaceAll("%TO", valTo);
 
@@ -330,6 +367,8 @@ class Meter {
           url,
           params: {
             [this.#config?.measurements?.params?.id || "id"]: valId,
+            [this.#config?.measurements?.params?.customer || "customer"]:
+              valCustomer,
             [this.#config?.measurements?.params?.from || "from"]: valFrom,
             [this.#config?.measurements?.params?.to || "to"]: valTo,
             ...this.#config?.measurements?.params?.other,

@@ -1,4 +1,4 @@
-FROM node:20.0.0-alpine3.16
+FROM node:21.2.0-alpine3.17
 
 WORKDIR /usr/src/app
 RUN mkdir -p /usr/src/app/logs

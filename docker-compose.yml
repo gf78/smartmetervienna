@@ -14,6 +14,8 @@ services:
       CRON_DAYS_IN_PAST: "7"
       LOGWIEN_USERNAME: "xxx"
       LOGWIEN_PASSWORD: "xxx"
+      METER_ID: "xxx"
+      CUSTOMER_ID: "xxx"
       INLUXDB_URL: "http://xxx:8086"
       INLUXDB_ORGANISATION: "xxx"
       INLUXDB_BUCKET: "smartmetervienna"

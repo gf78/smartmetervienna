@@ -68,6 +68,7 @@ module.exports = function ({ logger, store, meter }) {
    * @group Meter
    * @summary Retrieve raw measurements
    * @param {string} [id.query] - Meter ID (Zählpunkt), default: first meter in list - e.g. AT0010000000000000001xxxxxxxxxxxx
+   * @param {string} [customer.query] - Customer ID
    * @param {string} [from.query] - Periode start (YYYY-MM-DD). (default: yesterday) - e.g. 2023-01-01
    * @param {string} [to.query] - Periode end (YYYY-MM-DD). (default: yesterday) - e.g. 2023-12-31
    * @produces application/json
@@ -80,9 +81,10 @@ module.exports = function ({ logger, store, meter }) {
       const from = getDateString(request.query?.from);
       const to = getDateString(request.query?.to);
       const id = request.query?.id;
+      const customer = request.query?.customer;
 
-      logger.verbose("[API] GET /meter/raw", id, from, to);
-      const data = await meter.getRawMeasurements({ id, from, to });
+      logger.verbose("[API] GET /meter/raw", id, customer, from, to);
+      const data = await meter.getRawMeasurements({ id, customer, from, to });
       response.status(200).json(data);
     } catch (error) {
       logger.error("[API] /meter/raw", error);
@@ -96,6 +98,7 @@ module.exports = function ({ logger, store, meter }) {
    * @group Meter
    * @summary Retrieve measurements for DB storage
    * @param {string} [id.query] - Meter ID (Zählpunkt), default: first meter in list - e.g. AT0010000000000000001xxxxxxxxxxxx
+   * @param {string} [customer.query] - Customer ID
    * @param {string} [from.query] - Periode start (YYYY-MM-DD). (default: yesterday) - e.g. 2023-01-01
    * @param {string} [to.query] - Periode end (YYYY-MM-DD). (default: yesterday) - e.g. 2023-12-31
    * @param {boolean} [store.query = false] - Define if the retrieved data should be stored in the database. (default: false) - eg: false, true
@@ -109,15 +112,17 @@ module.exports = function ({ logger, store, meter }) {
       const from = getDateString(request.query?.from);
       const to = getDateString(request.query?.to);
       const id = request.query?.id;
+      const customer = request.query?.customer;
 
       logger.verbose(
         "[API] GET /meter/measurements",
         id,
+        customer,
         from,
         to,
         request?.query?.store
       );
-      const data = await meter.getMeasurements({ id, from, to });
+      const data = await meter.getMeasurements({ id, customer, from, to });
       const success = isTrue(request?.query?.store) ? store(data) : true;
       response.status(success ? 200 : 500).json(data);
     } catch (error) {
@@ -132,6 +137,7 @@ module.exports = function ({ logger, store, meter }) {
    * @group Meter
    * @summary Retrieve enhanced load measurements
    * @param {string} [id.query] - Meter ID (Zählpunkt), default: first meter in list - e.g. AT0010000000000000001xxxxxxxxxxxx
+   * @param {string} [customer.query] - Customer ID
    * @param {string} [from.query] - Periode start (YYYY-MM-DD). (default: yesterday) - e.g. 2023-01-01
    * @param {string} [to.query] - Periode end (YYYY-MM-DD). (default: yesterday) - e.g. 2023-12-31
    * @param {enum} [aggregation.query = 15m] - aggregation level of data - eg: 15m,1h,1d,total
@@ -145,10 +151,12 @@ module.exports = function ({ logger, store, meter }) {
       const from = getDateString(request.query?.from);
       const to = getDateString(request.query?.to);
       const id = request.query?.id;
+      const customer = request.query?.customer;
 
       logger.verbose(
         "[API] GET /meter/consumption",
         id,
+        customer,
         from,
         to,
         request?.query?.aggregation
@@ -159,20 +167,20 @@ module.exports = function ({ logger, store, meter }) {
         case "1h":
         case "hour":
         case "hourly":
-          data = await meter.getConsumption1h({ id, from, to });
+          data = await meter.getConsumption1h({ id, customer, from, to });
           break;
         case "1d":
         case "day":
         case "daily":
-          data = await meter.getConsumption1d({ id, from, to });
+          data = await meter.getConsumption1d({ id, customer, from, to });
           break;
         case "total":
         case "all":
-          data = await meter.getConsumptionTotal({ id, from, to });
+          data = await meter.getConsumptionTotal({ id, customer, from, to });
           break;
         case "15min":
         default:
-          data = await meter.getConsumption({ id, from, to });
+          data = await meter.getConsumption({ id, customer, from, to });
           break;
       }
 
@@ -189,6 +197,7 @@ module.exports = function ({ logger, store, meter }) {
    * @group Meter
    * @summary Retrieve enhanced load measurements
    * @param {string} [id.query] - Meter ID (Zählpunkt), default: first meter in list - e.g. AT0010000000000000001xxxxxxxxxxxx
+   * @param {string} [customer.query] - Customer ID*
    * @param {string} [from.query] - Periode start (YYYY-MM-DD). (default: yesterday) - e.g. 2023-01-01
    * @param {string} [to.query] - Periode end (YYYY-MM-DD). (default: yesterday) - e.g. 2023-12-31
    * @produces application/json
@@ -201,9 +210,10 @@ module.exports = function ({ logger, store, meter }) {
       const from = getDateString(request.query?.from);
       const to = getDateString(request.query?.to);
       const id = request.query?.id;
+      const customer = request.query?.customer;
 
-      logger.verbose("[API] GET /meter/load", id, from, to);
-      const data = await meter.getLoad({ id, from, to });
+      logger.verbose("[API] GET /meter/load", id, customer, from, to);
+      const data = await meter.getLoad({ id, customer, from, to });
       response.status(200).json(data);
     } catch (error) {
       logger.error("[API] /meter/load", error);

@@ -92,6 +92,8 @@ services:
       CRON_DAYS_IN_PAST: "7"
       LOGWIEN_USERNAME: "xxx"
       LOGWIEN_PASSWORD: "xxx"
+      METER_ID: "xxx"
+      CUSTOMER_ID: "xxx"
       INLUXDB_URL: "http://xxx:8086"
       INLUXDB_ORGANISATION: "xxx"
       INLUXDB_BUCKET: "smartmetervienna"
@@ -137,6 +139,7 @@ Use the following environment variables to configure the service
 | LOGWIEN_USERNAME     | Username for smart meter portal of Wiener Netze                                                                            | yes       |
 | LOGWIEN_PASSWORD     | Password for smart meter portal of Wiener Netze                                                                            | yes       |
 | METER_ID             | Meter id (Zählerpunkt) of Wiener Netze                                                                                     | no        |
+| CUSTOMER_ID          | Customer id of Wiener Netze                                                                                                | no        |
 | INLUXDB_URL          | URL of influx db `http://xxx:8086`                                                                                         | no        |
 | INLUXDB_TOKEN        | Token of influx db                                                                                                         | no        |
 | INLUXDB_ORGANISATION | Organisation of influx db                                                                                                  | no        |

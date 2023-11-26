@@ -20,6 +20,7 @@ const getFullConfig = () => {
       username: process.env.LOGWIEN_USERNAME || null,
       password: process.env.LOGWIEN_PASSWORD || null,
       id: process.env.METER_ID || null,
+      customer: process.env.CUSTOMER_ID || null,
     },
     db: {
       url: process.env.INLUXDB_URL || null,

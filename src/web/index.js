@@ -107,6 +107,7 @@ class Web {
               from: req?.query?.from,
               to: req?.query?.to,
               id: req?.query?.id,
+              customer: req?.query?.customer,
             });
             if (Array.isArray(data)) {
               count = store(data) ? data.length : 0;
