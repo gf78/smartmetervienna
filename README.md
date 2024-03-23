@@ -1,3 +1,9 @@
+
+**!!! This repository is not maintained anymore !!!**
+
+
+
+
 # SmartMeter Vienna
 
 - Github: https://github.com/gf78/smartmetervienna/
